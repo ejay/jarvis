@@ -1,5 +1,3 @@
-package rest;
-
 /**
  * Created by bas on 12-12-15.
  */

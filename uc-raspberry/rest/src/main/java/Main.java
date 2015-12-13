@@ -1,5 +1,3 @@
-package console;
-
 /**
  * Created by bas on 12-12-15.
  */
