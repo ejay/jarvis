@@ -18,7 +18,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>Main</mainClass>
+                            <mainClass>ConsoleInterface</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
