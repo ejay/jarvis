@@ -9,6 +9,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.goebl.david.Webb;
+
+import java.util.Calendar;
+
 public class LightSensorActivity extends AppCompatActivity implements SensorEventListener{
     private SensorManager sensorManager;
     private Sensor light;
@@ -34,6 +38,16 @@ public class LightSensorActivity extends AppCompatActivity implements SensorEven
     @Override
     public void onSensorChanged(SensorEvent event) {
         Log.i("UPDATE", "Light sensor value: " + event.values[0]);
+
+        Webb webb = Webb.create();
+        webb.get("http://localhost/sensor-data")
+                .param("timestamp", Long.toString(Calendar.getInstance().getTime().getTime()))
+                .param("sensorId", "00001")
+                .param("sensorType", "Light")
+                .param("value", Float.toString(event.values[0]))
+                .ensureSuccess()
+                .asJsonObject()
+                .getBody();
     }
 
     @Override

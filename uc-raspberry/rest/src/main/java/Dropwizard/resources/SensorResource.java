@@ -12,14 +12,16 @@ import java.util.logging.Logger;
 public class SensorResource {
     private final static Logger logger = Logger.getLogger(SensorResource.class.getName());
 
-    @GET
+    @POST
     @Timed
     public void receiveSensorData(@QueryParam("timestamp") Optional<String> timestamp,
                            @QueryParam("sensorId") Optional<String> sensorId,
                            @QueryParam("sensorType") Optional<String> sensorType,
                            @QueryParam("value") Optional<String> value) {
         logger.info(String.format("Received sensor data: timestamp = %s, sensorId = %s, sensorType = %s, value = %s",
-                timestamp.get(), sensorId.get(), sensorType.get(), value.get()));
-        // localhost:8080/sensor-data?timestamp=time3&sensorId=sensorid3&sensorType=sensortype3&value=value3
+                timestamp, sensorId, sensorType, value));
+//                timestamp.get(), sensorId.get(), sensorType.get(), value.get()));
+        // http://localhost:8080/sensor-data?timestamp=time3&sensorId=sensorid3&sensorType=sensortype3&value=value3
+        // http://localhost:8080/sensor-data/timestamp/time3/sensorId/sensorid3/sensorType/sensortype3/value/value3
     }
 }
