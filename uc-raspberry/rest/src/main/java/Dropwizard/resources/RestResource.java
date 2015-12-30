@@ -11,9 +11,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Created by jorrit on 17-12-15.
- */
 @Path("/hello-world")
 @Produces(MediaType.APPLICATION_JSON)
 public class RestResource {

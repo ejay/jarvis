@@ -3,9 +3,6 @@ package Dropwizard.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.validator.constraints.Length;
 
-/**
- * Created by jorrit on 17-12-15.
- */
 public class Saying {
     private long id;
 

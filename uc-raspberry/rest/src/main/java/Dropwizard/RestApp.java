@@ -2,6 +2,7 @@ package Dropwizard;
 
 import Dropwizard.health.TemplateHealthCheck;
 import Dropwizard.resources.RestResource;
+import Dropwizard.resources.SensorResource;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -30,9 +31,14 @@ public class RestApp extends Application<RestConfig> {
                 configuration.getTemplate(),
                 configuration.getDefaultName()
         );
+
+        final SensorResource sensorResource = new SensorResource();
+
         final TemplateHealthCheck healthCheck =
                 new TemplateHealthCheck(configuration.getTemplate());
+
         environment.healthChecks().register("template", healthCheck);
         environment.jersey().register(resource);
+        environment.jersey().register(sensorResource);
     }
 }
