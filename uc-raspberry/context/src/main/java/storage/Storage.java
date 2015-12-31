@@ -14,6 +14,15 @@ public class Storage {
                 Jedis jedis = new Jedis(host)
                 ){
             jedis.set(key, value);
+            jedis.close();
         }
+    }
+
+    public String get(String key){
+        Jedis jedis = new Jedis(host);
+        String value = jedis.get(key);
+        jedis.close();
+        return value;
+
     }
 }

@@ -1,9 +1,12 @@
 package Dropwizard.resources;
 
-import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
+import storage.Storage;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import java.util.logging.Logger;
 
@@ -19,9 +22,9 @@ public class SensorResource {
                            @FormParam("value") Optional<String> value) {
         logger.info(String.format("Received sensor data: timestamp = %s, sensorId = %s, sensorType = %s, value = %s",
                 timestamp, sensorId, sensorType, value));
-//                timestamp.get(), sensorId.get(), sensorType.get(), value.get()));
-        // http://localhost:8080/sensor-data?timestamp=time3&sensorId=sensorid3&sensorType=sensortype3&value=value3
-        // http://localhost:8080/sensor-data/timestamp/time3/sensorId/sensorid3/sensorType/sensortype3/value/value3
-        // curl -i -d "timestamp=time3&sensorId=sensorid3&sensorType=sensortype3&value=value3" http://localhost:8080/sensor-data
+
+        Storage storage = new Storage("localhost");
+        storage.store("light", value.get());
+        //Test with: curl -i -d "timestamp=time3&sensorId=sensorid3&sensorType=sensortype3&value=value3" http://localhost:8080/sensor-data
     }
 }

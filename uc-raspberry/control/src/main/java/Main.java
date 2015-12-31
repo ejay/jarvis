@@ -1,6 +1,7 @@
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import storage.Storage;
 
 import java.nio.file.Paths;
 
@@ -10,8 +11,17 @@ import java.nio.file.Paths;
 public class Main {
     private static MediaPlayer mediaPlayer;
 
-    public static void main(String[] args){
-        playSong();
+    public static void main(String[] args) throws InterruptedException {
+//        playSong();
+
+        Storage storage = new Storage("localhost");
+
+        while(true){
+            String value = storage.get("light");
+            System.out.println("light value = " + value);
+            Thread.sleep(3*1000);
+        }
+
     }
 
     private static void playSong(){
