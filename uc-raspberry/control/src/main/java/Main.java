@@ -21,27 +21,31 @@ public class Main {
 //            Thread.sleep(3*1000);
 //        }
 
-        NSocket.connect("192.168.178.69", 5001);
+        String line;
+        NSocket.connect("192.168.178.69", 57286);
+
         System.out.println(NSocket.write("{\"action\":\"identify\"}"));
-        System.out.println(NSocket.write("{\"action\":\"request values\"}"));
+        System.out.println(NSocket.read(1024));
+        System.out.println(line = NSocket.getLine());
+        System.out.println("line = " + line);
+//        System.out.println(NSocket.write("{\"action\":\"request values\"}"));
+//        System.out.println(NSocket.read(1024));
+//        System.out.println(line = NSocket.getLine());
+//        System.out.println("line = " + line);
 
-        String line = NSocket.getLine();
+//        System.out.println(NSocket.write("HEART"));
+//        System.out.println(NSocket.read(1024));
+//        System.out.println(line = NSocket.getLine());
+//        System.out.println("line = " + line);
 
+
+        System.out.println(NSocket.write("{\"action\": \"send\", \"code\": {\"protocol\": [\"kaku_switch\"],\"id\": 17432370,\"unit\": 0,\"off\": 1}}"));
+
+        System.out.println(NSocket.read(1024));
+        System.out.println(line = NSocket.getLine());
         System.out.println("line = " + line);
 
-
-        System.out.println(NSocket.write("{\n" +
-                "\"action\": \"send\"\n" +
-                "\"code\": {\n" +
-                "\"protocol\": [\"kaku_switch\"],\n" +
-                "\"id\": 17432370,\n" +
-                "\"unit\": 0,\n" +
-                "\"off\": 1\n" +
-                "}\n" +
-                "}"));
-
-
-
+        Thread.sleep(1000);
         NSocket.close();
 
     }

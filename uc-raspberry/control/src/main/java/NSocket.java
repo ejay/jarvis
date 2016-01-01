@@ -12,6 +12,7 @@ public class NSocket {
     private static Socket socket;
     private static BufferedReader bufferedReader = null;
     private static PrintStream printStream = null;
+    private static Thread heartbeatThread;
     private static String line = null;
 
     private static long heart = new Date().getTime();
@@ -46,8 +47,8 @@ public class NSocket {
             isConnected = false;
             return null;
         }
-        Thread thread = new Thread(new NSocket.HeartBeat());
-        thread.start();
+        heartbeatThread = new Thread(new NSocket.HeartBeat());
+        heartbeatThread.start();
         isConnected = true;
         return socket;
     }
@@ -66,6 +67,7 @@ public class NSocket {
 
     public static void close() {
         try {
+            heartbeatThread.stop();
             if(bufferedReader != null) {
                 bufferedReader.close();
             }
@@ -76,7 +78,7 @@ public class NSocket {
                 socket.close();
             }
         } catch(IOException e) {
-            //Log.printf("Could not close connection to server");
+            e.printStackTrace();
         }
     }
 
