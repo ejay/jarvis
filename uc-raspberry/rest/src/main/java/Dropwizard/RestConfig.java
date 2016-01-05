@@ -9,7 +9,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  */
 public class RestConfig extends Configuration {
     @NotEmpty
-    private String template;
+    private String template = "Hello, %s!";
 
     @NotEmpty
     private String defaultName = "Stranger";

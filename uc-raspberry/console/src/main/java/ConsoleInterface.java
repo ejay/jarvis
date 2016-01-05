@@ -1,3 +1,5 @@
+import rest.RestClient;
+
 import java.io.*;
 import java.util.regex.Pattern;
 
@@ -11,6 +13,7 @@ public class ConsoleInterface {
 
 	public void run(){
 		System.out.println("Welcome to the Alarm System. Input your commands below:");
+		RestClient test = new RestClient();
 		while (true){
 			BufferedReader bis = new BufferedReader(new InputStreamReader(System.in));
 			String response = "";
@@ -30,9 +33,16 @@ public class ConsoleInterface {
 				}else{
 					System.out.println("Time parsing failed. Expected hh:mm .");
 				}
-			}else if (commands[0].equals("quit") || commands[0].equals("exit") || commands[0].equals("exsquid")){
+			}else if (commands[0].equals("quit") || commands[0].equals("exit") || commands[0].equals("exsquid")) {
 				System.out.println("Bye bye!");
 				System.exit(0);
+
+			}else if(commands[0].equals("rest")){
+
+				test.connect();
+			}else if(commands[0].equals("rest2")){
+
+				test.get();
 			}else {
 				printHelp();
 			}
