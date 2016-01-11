@@ -16,15 +16,21 @@ public class SensorResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public void receiveSensorData(@FormParam("timestamp") Optional<String> timestamp,
-                           @FormParam("sensorId") Optional<String> sensorId,
-                           @FormParam("sensorType") Optional<String> sensorType,
-                           @FormParam("value") Optional<String> value) {
-        logger.info(String.format("Received sensor data: timestamp = %s, sensorId = %s, sensorType = %s, value = %s",
-                timestamp, sensorId, sensorType, value));
-
+    public void receiveKeyValuePair(@FormParam("key") Optional<String> key, @FormParam("value") Optional<String> value){
         Storage storage = new Storage("localhost");
-        storage.store("light", value.get());
-        //Test with: curl -i -d "timestamp=time3&sensorId=sensorid3&sensorType=sensortype3&value=value3" http://localhost:8080/sensor-data
+        String keyString = key.get();
+        String valueString = value.get();
+
+        if(keyString == null){
+            logger.warning("Attempted to insert empty key, storing failed.");
+            return;
+        }else if(valueString == null){
+            logger.warning("Attempted to insert empty value, storing failed.");
+            return;
+        }
+
+        logger.info(String.format("Received key = %s, value = %s", keyString, valueString));
+        storage.store(keyString, valueString);
+        //Test with: curl -i -d "key=testkey3&value=testvalue3" http://localhost:8080/sensor-data
     }
 }
