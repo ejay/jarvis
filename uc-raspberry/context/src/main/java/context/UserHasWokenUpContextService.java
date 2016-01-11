@@ -1,8 +1,9 @@
 package context;
 
+import storage.Storage;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -10,19 +11,27 @@ import java.util.List;
  * Output context: Whether or not the user is asleep.
  */
 public class UserHasWokenUpContextService extends ContextService {
-    private String lightLevelBedPhone;
+    private final static String[] inputContextKeys = new String[]{"BedPhoneLight"};
+    private final static String outputContextKey = "UserHasWokenUp";
 
     @Override
     public void update() {
+        // 1. fetch input contexts from redis
+        Storage storage = new Storage("localhost");
+        String bedPhoneLight = storage.get(inputContextKeys[0]);
+
+        // 2. evaluate
+        String hasWokenUpString = "true";
+
+        // 3. store output context in redis
+        storage.store(outputContextKey, hasWokenUpString);
+
         // TODO re-evaluate the high level context based on the newly available low-level context.
         throw new NotImplementedException();
     }
 
     @Override
     public List<String> getInputContextKeys() {
-        List<String> list = new ArrayList<>();
-        list.add(lightLevelBedPhone);
-
-        return list;
+        return Arrays.asList(inputContextKeys);
     }
 }
