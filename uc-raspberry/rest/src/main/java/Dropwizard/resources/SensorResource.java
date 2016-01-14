@@ -41,6 +41,13 @@ public class SensorResource {
         logger.info(String.format("Received key = %s, value = %s", keyString, valueString));
         storage.store(keyString, valueString);
 
+        if(keyString.contains("_raw")){
+            String discretizedValue = ContextService.discretize(keyString, valueString);
+            keyString = keyString.substring(0,keyString.length() - 4);
+
+            storage.store(keyString, discretizedValue);
+        }
+
         List<ContextService> servicesToUpdate = ContextUtil.filterOnKey(contextServices, keyString);
 
         servicesToUpdate.forEach(ContextService::update);
