@@ -32,13 +32,13 @@ public class RestApp extends Application<RestConfig> {
                 configuration.getDefaultName()
         );
 
-        final SensorResource sensorResource = new SensorResource();
+//        final SensorResource sensorResource = new SensorResource();
 
         final TemplateHealthCheck healthCheck =
                 new TemplateHealthCheck(configuration.getTemplate());
 
         environment.healthChecks().register("template", healthCheck);
         environment.jersey().register(resource);
-        environment.jersey().register(sensorResource);
+//        environment.jersey().register(sensorResource);
     }
 }

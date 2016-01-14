@@ -21,13 +21,17 @@ public class UserHasWokenUpContextService extends ContextService {
         String bedPhoneLight = storage.get(inputContextKeys[0]);
 
         // 2. evaluate
-        String hasWokenUpString = "true";
+        String hasWokenUpString;
+        //TODO improve this logic.
+        if(bedPhoneLight.equals("low")){
+            hasWokenUpString = "false";
+        }else{
+            hasWokenUpString = "true";
+        }
+
 
         // 3. store output context in redis
         storage.store(outputContextKey, hasWokenUpString);
-
-        // TODO re-evaluate the high level context based on the newly available low-level context.
-        throw new NotImplementedException();
     }
 
     @Override
