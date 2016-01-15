@@ -33,7 +33,6 @@ public class RestApp extends Application<RestConfig> {
                 configuration.getDefaultName()
         );
 
-        final SensorResource sensorResource = new SensorResource();
         final ConsoleTimeResource ctr = new ConsoleTimeResource();
 
         final TemplateHealthCheck healthCheck =
@@ -41,7 +40,7 @@ public class RestApp extends Application<RestConfig> {
 
         environment.healthChecks().register("template", healthCheck);
         environment.jersey().register(resource);
-        environment.jersey().register(sensorResource);
+//        environment.jersey().register(sensorResource);
         environment.jersey().register(ctr);
     }
 }
