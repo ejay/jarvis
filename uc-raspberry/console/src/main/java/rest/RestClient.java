@@ -1,5 +1,6 @@
 package rest;
 
+import Dropwizard.api.ConsoleTimeMsg;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
@@ -25,7 +26,7 @@ public class RestClient {
 	public void connect(){
 		Response response = target.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(new ConsoleTimeMsg("alarm","8:00"),MediaType.APPLICATION_JSON_TYPE));
 
-		if(response.getStatus() >= 200 && response.getStatus() < 300){
+		if(response.getStatus() >= 200 && response.getStatus() < 300){// any 2XX would be a form of success
 			System.out.println("Message sent successfully!");
 		}else{
 			System.out.println(response.getStatusInfo().toString());
