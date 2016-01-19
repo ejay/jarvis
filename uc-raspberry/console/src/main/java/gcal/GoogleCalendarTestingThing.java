@@ -41,6 +41,14 @@ public class GoogleCalendarTestingThing {
 	//https://developers.google.com/apis-explorer/#p/calendar/v3/calendar.calendarList.list?_h=1&
 
 	//https://developers.google.com/identity/protocols/OAuth2ForDevices
+
+	public void getToken(){
+		authToken = new OAuthToken();
+		if(!authToken.load()){//if loading failed
+			triggercode();
+		}
+	}
+
 	public void triggercode() {
 		httpTransport = new NetHttpTransport();
 		HttpRequestFactory requestFactory = httpTransport.createRequestFactory();
@@ -88,6 +96,8 @@ public class GoogleCalendarTestingThing {
 			System.out.println(intervalMultiplier);
 			System.out.println("Got your approval from google!");
 			System.out.println(authToken);
+			authToken.tokenTime();
+			authToken.store();
 
 
 		} catch (IOException e) {
