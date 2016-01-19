@@ -1,5 +1,6 @@
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import gcal.GoogleCalendarTestingThing;
 import rest.RestClient;
 
 import java.io.*;
@@ -40,8 +41,8 @@ public class ConsoleInterface {
 				System.exit(0);
 
 			}else if(commands[0].equals("calendar")){
-
-
+				GoogleCalendarTestingThing gcal = new GoogleCalendarTestingThing();
+				gcal.triggercode();
 			}else if(commands[0].equals("rest")){
 
 				test.connect();
