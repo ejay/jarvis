@@ -11,6 +11,13 @@ public class AccelerometerData implements Parcelable{
     private double y;
     private double z;
 
+    /*
+     * time smoothing constant for low-pass filter
+     * 0 ≤ alpha ≤ 1 ; a smaller value basically means more smoothing
+     * See: http://en.wikipedia.org/wiki/Low-pass_filter#Discrete-time_realization
+     */
+    static final float ALPHA = 0.15f;
+
     public AccelerometerData(Parcel source){
         Log.v("AccelerometerData", "ParcelData(Parcel source): time to put back parcel data");
         timestamp = source.readLong();
@@ -43,7 +50,6 @@ public class AccelerometerData implements Parcelable{
     public void setTimestamp(long timestamp){
         this.timestamp = timestamp;
     }
-
     public void setX(long x){
         this.x = x;
     }
@@ -54,10 +60,26 @@ public class AccelerometerData implements Parcelable{
         this.z = z;
     }
 
+    /**
+     * Lowpass filter for raw accelerometer sensor data
+     * @see http://en.wikipedia.org/wiki/Low-pass_filter#Algorithmic_implementation
+     * @see http://developer.android.com/reference/android/hardware/SensorEvent.html#values
+     * @param newValues values being filtered
+     * @param oldValues last set of smoothed values
+     * @return
+     */
+    protected float[] lowPass(float[] newValues, float[] oldValues){
+        if ( oldValues == null ) return newValues;
+
+        for ( int i=0; i<newValues.length; i++ ) {
+            oldValues[i] = oldValues[i] + ALPHA * (newValues[i] - oldValues[i]);
+        }
+        return oldValues;
+    }
+
     public String toString(){
         return "t="+timestamp+", x="+x+", y="+y+", z="+z;
     }
-
     public String toCSV(){
         return timestamp+","+x+","+y+","+z;
     }
