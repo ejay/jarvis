@@ -33,6 +33,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import uc.jarvis.DataProcessor.DataProcessingReceiver;
+import uc.jarvis.DataProcessor.DatabaseHandler;
 
 public class AccelerometerActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -66,6 +67,9 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
     private HandlerThread mSensorThread;
     private Handler mSensorHandler;
+
+    DatabaseHandler dbHandler = DatabaseHandler.getInstance(this);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,10 +106,13 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
 
 
-        // create database and table
+//        // create database and table
 //        db=openOrCreateDatabase("SensorData", Context.MODE_PRIVATE, null);
 //        db.execSQL("CREATE TABLE IF NOT EXISTS AccelerometerData(timestamp LONG,name VARCHAR,marks VARCHAR);");
-//        db.execSQL("CREATE TABLE IF NOT EXISTS Features(_id INTEGER primary key AUTOINCREMENT,);");
+//        db.execSQL("CREATE TABLE IF NOT EXISTS ProcessedFeature(_id INTEGER primary key AUTOINCREMENT, avgX DOUBLE, avgY DOUBLE, avgZ DOUBLE, minX DOUBLE, minY DOUBLE, minZ DOUBLE, maxX DOUBLE, maxY DOUBLE, maxZ DOUBLE, rmsX DOUBLE, rmsY DOUBLE, rmsZ DOUBLE);");
+
+//        tablo2="CREATE TABLE ProcessedFeature (_id INTEGER primary key AUTOINCREMENT,ortX REAL,ortY REAL,ortZ REAL,stdX REAL,stdY REAL,stdZ REAL,maxX REAL,maxY REAL,maxZ REAL,aadX REAL,aadY REAL,aadZ REAL,averageResultantAcc REAL,binX1 INTEGER,binX2 INTEGER,binX3 INTEGER,binX4 INTEGER,binX5 INTEGER,binX6 INTEGER,binX7 INTEGER,binX8 INTEGER,binX9 INTEGER,binX10 INTEGER,binY1 INTEGER,binY2 INTEGER,binY3 INTEGER,binY4 INTEGER,binY5 INTEGER,binY6 INTEGER,binY7 INTEGER,binY8 INTEGER,binY9 INTEGER,binY10 INTEGER,binZ1 INTEGER,binZ2 INTEGER,binZ3 INTEGER,binZ4 INTEGER,binZ5 INTEGER,binZ6 INTEGER,binZ7 INTEGER,binZ8 INTEGER,binZ9 INTEGER,binZ10 INTEGER);";
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
