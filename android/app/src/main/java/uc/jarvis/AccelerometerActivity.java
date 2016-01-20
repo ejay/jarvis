@@ -103,9 +103,9 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
 
         // create database and table
-        db=openOrCreateDatabase("SensorData", Context.MODE_PRIVATE, null);
-        db.execSQL("CREATE TABLE IF NOT EXISTS AccelerometerData(timestamp LONG,name VARCHAR,marks VARCHAR);");
-        db.execSQL("CREATE TABLE IF NOT EXISTS Features(_id INTEGER primary key AUTOINCREMENT,);");
+//        db=openOrCreateDatabase("SensorData", Context.MODE_PRIVATE, null);
+//        db.execSQL("CREATE TABLE IF NOT EXISTS AccelerometerData(timestamp LONG,name VARCHAR,marks VARCHAR);");
+//        db.execSQL("CREATE TABLE IF NOT EXISTS Features(_id INTEGER primary key AUTOINCREMENT,);");
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
