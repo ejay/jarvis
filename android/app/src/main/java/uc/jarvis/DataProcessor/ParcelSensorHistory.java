@@ -15,12 +15,13 @@ public class ParcelSensorHistory implements Parcelable {
     private String name;
     private ArrayList<AccelerometerData> itemList = new ArrayList<>();
 
-
-//    public ArrayList<HoldListTopic> GetListTopic(){}
-
-    public Pa
+    public ParcelSensorHistory(String name){
+        this.name = name;
+    }
 
     protected ParcelSensorHistory(Parcel in) {
+        name = in.readString();
+//        itemList = in.readParcelableArray();
     }
 
     public static final Creator<ParcelSensorHistory> CREATOR = new Creator<ParcelSensorHistory>() {
@@ -43,4 +44,5 @@ public class ParcelSensorHistory implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
     }
+
 }

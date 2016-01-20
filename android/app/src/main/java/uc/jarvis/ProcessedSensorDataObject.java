@@ -14,6 +14,9 @@ public class ProcessedSensorDataObject {
     private double maxY = 0.0;
     private double maxZ = 0.0;
 
+    private double rmsX = 0.0;
+    private double rmsY = 0.0;
+    private double rmsZ = 0.0;
 
     public double getAvgX() {
         return avgX;
@@ -85,5 +88,29 @@ public class ProcessedSensorDataObject {
 
     public void setMaxZ(double maxZ) {
         this.maxZ = maxZ;
+    }
+
+    public double getRmsX() {
+        return rmsX;
+    }
+
+    public void setRmsX(double rmsX) {
+        this.rmsX = rmsX;
+    }
+
+    public double getRmsY() {
+        return rmsY;
+    }
+
+    public void setRmsY(double rmsY) {
+        this.rmsY = rmsY;
+    }
+
+    public double getRmsZ() {
+        return rmsZ;
+    }
+
+    public void setRmsZ(double rmsZ) {
+        this.rmsZ = rmsZ;
     }
 }

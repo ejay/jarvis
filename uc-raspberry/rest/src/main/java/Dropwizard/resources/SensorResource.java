@@ -1,14 +1,12 @@
 package Dropwizard.resources;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.common.base.Optional;
 import context.ContextService;
 import context.ContextUtil;
 import storage.Storage;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.logging.Logger;
@@ -52,4 +50,21 @@ public class SensorResource {
 
         servicesToUpdate.forEach(ContextService::update);
     }
+
+    @POST
+//    @Path("json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void receiveJSON(JSONPObject jsonObject){
+        Storage storage = new Storage("localhost");
+
+        if(jsonObject == null){
+            logger.warning("Attempted to insert empty key, storing failed.");
+            return;
+        }
+
+        logger.info(String.format(jsonObject.toString()));
+
+    }
+
+
 }

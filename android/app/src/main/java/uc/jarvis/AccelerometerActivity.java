@@ -1,48 +1,52 @@
 package uc.jarvis;
 
-import android.app.Activity;
-import android.app.KeyguardManager;
-import android.graphics.Color;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.Vibrator;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Map;
-import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import uc.jarvis.DataProcessor.DataProcessingReceiver;
 
 public class AccelerometerActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager sm;
     private Sensor accelerometer;
-    private Sensor light;
+
+    private ArrayList<AccelerometerData> sensorHistory;
 
     private ChartTimer timerTask;
 
     private TextView acceleration;
     private TextView currentX, currentY, currentZ;
+    private LineChart lineChart;
+    private LineData lineData;
 
 //    private Line
 
@@ -55,49 +59,54 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
     private static final float gravity = 9.80665F;
     private static final float movement_threshold = 0.4f;
-    private static final int update_interval = 5; //5ms interval;
-
+    private static final int UPDATE_INTERVAL = 5; //5ms interval;
     private long lastUpdateTime = System.currentTimeMillis();
 
-    private int movementCounter = 0;
+    private final AtomicInteger movementCounter = new AtomicInteger();
 
-    private LineChart lineChart;
-    private LineData lineData;
-    private Timer timer;
-
-    public Vibrator v;
-    private float vibrateThreshold = 0;
+    private HandlerThread mSensorThread;
+    private Handler mSensorHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        super.onCreate();
         setContentView(R.layout.activity_accelerometer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // initialize chart
-        createChart();
-        timerTask = new ChartTimer();
-
-        // disable screen lock
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
-
-        // dim screen
-        WindowManager.LayoutParams WMLP = getWindow().getAttributes();
-        WMLP.screenBrightness = 0.15F;
-        getWindow().setAttributes(WMLP);
-
         // initalize sensing
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorHistory = new ArrayList();
+        initViews();
 
-        // initialize views
-//        currentX = (TextView) findViewById(R.id.currentX);
-//        currentY = (TextView) findViewById(R.id.currentY);
-//        currentZ = (TextView) findViewById(R.id.currentZ);
 
-//        sm.registerListener(mListener, accelerometer, 1 *1000000 /* 1 second */, 10 *1000000 /* 10 seconds */);
-        sm.registerListener(mListener, accelerometer, update_interval, update_interval);
+
+        // background dataprocessing every 5 minutes
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent dataProcessing = new Intent(AccelerometerActivity.this, DataProcessingReceiver.class);
+//        dataProcessing.putExtra("sensorHistory", sensorHistory);
+        dataProcessing.putParcelableArrayListExtra("sensorHistory", sensorHistory);
+        PendingIntent dataProcessingIntent  = PendingIntent.getBroadcast(AccelerometerActivity.this, 0, dataProcessing, 0);
+        alarmManager.setInexactRepeating(AlarmManager.RTC, 5 * 1000, 5 * 1000, dataProcessingIntent);
+//        alarmManager.set(AlarmManager.RTC, 1, dataProcessingIntent);
+//        alarmManager.set(AlarmManager.RTC, 60*1000*5, 60*1000*5, dataProcessingIntent);
+//        alarmManager.setInexactRepeating(AlarmManager.RTC, 60*1000*5, 60*1000*5, dataProcessingIntent);
+
+
+        mSensorThread = new HandlerThread("Sensor processing thread", Thread.MAX_PRIORITY);
+        mSensorThread.start();
+        mSensorHandler = new Handler(mSensorThread.getLooper());
+        sm.registerListener(mListener, accelerometer, UPDATE_INTERVAL, UPDATE_INTERVAL, mSensorHandler);
+
+
+
+        // create database and table
+        db=openOrCreateDatabase("SensorData", Context.MODE_PRIVATE, null);
+        db.execSQL("CREATE TABLE IF NOT EXISTS AccelerometerData(timestamp LONG,name VARCHAR,marks VARCHAR);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS Features(_id INTEGER primary key AUTOINCREMENT,);");
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,31 +115,22 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
                         .setAction("Action", null).show();
             }
         });
+
+        //        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+//        Intent batteryStatus = context.registerReceiver(null, ifilter);
     }
 
-    protected void createChart(){
 
-        lineData = new LineData(
-                SleepData.getInstance().getLabelsAsArrayList(),
-                SleepData.getInstance().getDataSet()
-        );
-
-        lineChart = new LineChart(getApplicationContext());
-        lineChart.setData(lineData);
-//        lineChart.setVisibleXRangeMaximum(120);
-        lineChart.setVisibleYRangeMaximum(50, YAxis.AxisDependency.LEFT);
-        lineChart.setMaxVisibleValueCount(10);
-
-
-    }
 
     protected void onResume(){
         super.onResume();
+
         sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     protected void onPause(){
         super.onPause();
+
         sm.unregisterListener(this);
     }
 
@@ -158,40 +158,13 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
     public void displayValues(){
         currentX.setText(Float.toString(deltaX));
-//        currentY.setText(Float.toString(deltaY));
-//        currentZ.setText(Float.toString(deltaZ));
+        currentY.setText(Float.toString(deltaY));
+        currentZ.setText(Float.toString(deltaZ));
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-//
-//        long currentTime = System.currentTimeMillis();
-//
-//        if ((currentTime - lastUpdateTime) >= update_interval) {
-//
-//            lastUpdateTime = currentTime;
-//
-//            if (movementThreshold(event.values)) {
-//
-//
-//
-//                if (movementThreshold(event.values)) {
-////                    Log.i("UPDATE", "Accelerometer sensor value: " + event.values);
-//                    // post sensordata to raspberry
-//                    // should probably only do states of the phone
-//                    // e.g. sleep awake rem-sleep or something
-//                    PostSensorData(event);
-//                    movementCounter++;
-//                    Log.i("UPDATE", "Movement total "+ movementCounter);
-//
-//                }
-//            }
-//        }
-//
-//        // store last values
-//        lastX = event.values[0];
-//        lastY = event.values[1];
-//        lastZ = event.values[2];
+       displayValues();
     }
 
     /**
@@ -209,37 +182,30 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         return false;
     }
 
-    private void PostSensorData(SensorEvent event){
-        String postString = String.format("timestamp=%s&sensorId=%s&sensorType=%s&value=%s",
-                Long.toString(Calendar.getInstance().getTime().getTime()),
-                "005",
-                "Accelerometer",
-                Float.toString(event.values[0]) + ',' +
-                        Float.toString(event.values[1]) + ',' +
-                        Float.toString(event.values[2]));
-
-        Log.i("UPDATE", postString);
-//        new PostSensorDataTask().execute(postString);
-    }
-
-    private void test(SensorEvent event){
-        // extract accelerometer values
-        deltaX = Math.abs(lastX - event.values[0]);
-        deltaY = Math.abs(lastY - event.values[1]);
-        deltaZ = Math.abs(lastZ - event.values[2]);
-
-        // absolute acceleration in m/s^2
-//        float absX = deltaX * gravity;
-//        float absY = deltaY * gravity;
-//        float absZ = (deltaZ + 1.0f) * gravity;
-
-        displayValues(); // display accelerometer values
-    }
+//    private void PostSensorData(SensorEvent event){
+//        String postString = String.format("timestamp=%s&sensorId=%s&sensorType=%s&value=%s",
+//                Long.toString(Calendar.getInstance().getTime().getTime()),
+//                "005",
+//                "Accelerometer",
+//                Float.toString(event.values[0]) + ',' +
+//                        Float.toString(event.values[1]) + ',' +
+//                        Float.toString(event.values[2]));
+//
+//        Log.i("UPDATE", postString);
+////        new PostSensorDataTask().execute(postString);
+//    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
 
+
+    public void initViews(){
+        // initialize views
+        currentX = (TextView) findViewById(R.id.currentX);
+        currentY = (TextView) findViewById(R.id.currentY);
+        currentZ = (TextView) findViewById(R.id.currentZ);
+    }
 
 
     class ChartTimer extends TimerTask {
@@ -250,7 +216,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
             final String time = sdf.format(calendar.getTime());
 
-            SleepData.getInstance().addEntry(time, movementCounter);
+            SleepData.getInstance().addEntry(time, movementCounter.get());
             System.out.println("Entry added: " + time + ", " + movementCounter);
             lineChart.setData(
                     new LineData(
@@ -260,9 +226,9 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             );
             lineChart.getLineData().getDataSetByIndex(0).setDrawFilled(true);
             lineChart.getLineData().getDataSetByIndex(0).setFillAlpha(127);
-            lineChart.getAxisLeft().setAxisMaxValue(update_interval/50);
+            lineChart.getAxisLeft().setAxisMaxValue(UPDATE_INTERVAL/50);
             lineChart.getAxisLeft().setAxisMinValue(0.0f);
-            lineChart.getAxisRight().setAxisMaxValue(update_interval/50);
+            lineChart.getAxisRight().setAxisMaxValue(UPDATE_INTERVAL/50);
             lineChart.getAxisRight().setAxisMinValue(0.0f);
             lineChart.getAxisLeft().setDrawGridLines(false);
             lineChart.getAxisRight().setDrawGridLines(false);
@@ -279,25 +245,39 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         @Override
         public void onSensorChanged(SensorEvent event) {
 
+            int sensorType = event.sensor.getType();
+
+            switch (sensorType){
+                case Sensor.TYPE_ACCELEROMETER:
+                    processAccelerometerEvent(event);
+                    break;
+            }
+        }
+
+        protected void processAccelerometerEvent(SensorEvent event){
             long currentTime = System.currentTimeMillis();
 
-            if ((currentTime - lastUpdateTime) >= update_interval) {
-
+            if ((currentTime - lastUpdateTime) >= UPDATE_INTERVAL) {
                 lastUpdateTime = currentTime;
 
                 if (movementThreshold(event.values)) {
-
-
-
                     if (movementThreshold(event.values)) {
 //                    Log.i("UPDATE", "Accelerometer sensor value: " + event.values);
                         // post sensordata to raspberry
                         // should probably only do states of the phone
                         // e.g. sleep awake rem-sleep or something
-                        PostSensorData(event);
-                        movementCounter++;
-                        Log.i("UPDATE", "Movement total "+ movementCounter);
+//                        writeDataToCSV(event);
 
+                        // store sensordata
+                        long timestamp = System.currentTimeMillis();
+                        double x = event.values[0];
+                        double y = event.values[1];
+                        double z = event.values[2];
+                        AccelerometerData data = new AccelerometerData(timestamp,x,y,z);
+                        sensorHistory.add(data);
+//                        PostSensorData(event);
+                        movementCounter.incrementAndGet();
+                        Log.i("UPDATE", "Movement total "+ movementCounter);
                     }
                 }
             }
@@ -308,9 +288,47 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             lastZ = event.values[2];
         }
 
+        protected void writeDataToCSV(SensorEvent event){
+            // store data to csv
+//            Calendar calendar = Calendar.getInstance();
+//            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+//            final String time = sdf.format(calendar.getTime());
+//            try {
+//                writer.write(time+","+event.values[0]+","+event.values[1]+","+event.values[2]+"\n");
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+        }
+
         @Override
-        public void onAccuracyChanged(Sensor s, int accuracy) {
+        public void onAccuracyChanged(Sensor s, int accuracy) {}
+
+        protected void dimScreen(){
+            // disable screen lock
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+
+            // dim screen
+            WindowManager.LayoutParams WMLP = getWindow().getAttributes();
+            WMLP.screenBrightness = 0.15F;
+            getWindow().setAttributes(WMLP);
+        }
+
+        protected void createChart(){
+            timerTask = new ChartTimer();
+
+            lineData = new LineData(
+                    SleepData.getInstance().getLabelsAsArrayList(),
+                    SleepData.getInstance().getDataSet()
+            );
+
+            lineChart = new LineChart(getApplicationContext());
+            lineChart.setData(lineData);
+//        lineChart.setVisibleXRangeMaximum(120);
+            lineChart.setVisibleYRangeMaximum(50, YAxis.AxisDependency.LEFT);
+            lineChart.setMaxVisibleValueCount(10);
+
 
         }
     };
+
 }
