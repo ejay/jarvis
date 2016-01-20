@@ -1,10 +1,13 @@
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import gcal.GoogleCalendarTestingThing;
 import rest.RestClient;
 
 import java.io.*;
 import java.util.regex.Pattern;
 
 /**
- * Created by bas on 12-12-15.
+ * Created by bas on 12-12-15. Completely rewritten by Jorrit after that....
  */
 
 public class ConsoleInterface {
@@ -37,6 +40,9 @@ public class ConsoleInterface {
 				System.out.println("Bye bye!");
 				System.exit(0);
 
+			}else if(commands[0].equals("calendar")){
+				GoogleCalendarTestingThing gcal = new GoogleCalendarTestingThing();
+				gcal.triggercode();
 			}else if(commands[0].equals("rest")){
 
 				test.connect();
