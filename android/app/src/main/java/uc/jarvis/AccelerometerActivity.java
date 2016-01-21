@@ -68,7 +68,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
     private HandlerThread mSensorThread;
     private Handler mSensorHandler;
 
-    DatabaseHandler dbHandler = DatabaseHandler.getInstance(this);
+    DatabaseHandler dbHandler;
 
 
     @Override
@@ -85,7 +85,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         sensorHistory = new ArrayList();
         initViews();
 
-
+        dbHandler = DatabaseHandler.getInstance(getBaseContext());
 
         // background dataprocessing every 5 minutes
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -281,6 +281,9 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
                         double y = event.values[1];
                         double z = event.values[2];
                         AccelerometerData data = new AccelerometerData(timestamp,x,y,z);
+
+                        dbHandler.addRawData(data);
+
                         sensorHistory.add(data);
 //                        PostSensorData(event);
                         movementCounter.incrementAndGet();

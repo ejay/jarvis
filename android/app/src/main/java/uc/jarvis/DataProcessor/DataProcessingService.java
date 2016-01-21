@@ -2,6 +2,7 @@ package uc.jarvis.DataProcessor;
 
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -18,8 +19,12 @@ import uc.jarvis.ProcessedSensorDataObject;
 
 public class DataProcessingService extends IntentService {
 
+    DatabaseHandler dbHandler;
+
     public DataProcessingService() {
         super("DataProcessingService");
+        Context context = getBaseContext();
+        dbHandler = DatabaseHandler.getInstance(context);
     }
 
     @Override
@@ -33,6 +38,9 @@ public class DataProcessingService extends IntentService {
         Bundle bundle = intent.getExtras();
 //        ArrayList sensorHistory = bundle.getParcelableArrayList("sensorHistory");
         ArrayList sensorHistory = bundle.getParcelableArrayList("sensorHistory");
+
+        dbHandler.getRawData();
+//        dbHandler.clearRawData();
 
 //        Log.i("DataProcessingService", "Completed service @ " + sensorHistory.toString());
         // process data

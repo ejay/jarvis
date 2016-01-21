@@ -42,6 +42,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
+        onUpgrade(this.getWritableDatabase(), 0, 0);
     }
 
     /**
@@ -50,6 +51,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     private DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        onUpgrade(this.getWritableDatabase(), 0, 0);
     }
 
     public static synchronized DatabaseHandler getInstance(Context context) {
@@ -73,17 +75,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         // create database and table
 //        db=openOrCreateDatabase("SensorData", Context.MODE_PRIVATE, null);
+        db.execSQL("DROP TABLE IF EXISTS"+ TABLE_RAW);
+        db.execSQL("DROP TABLE IF EXISTS" + TABLE_FEATURES);
+
         String CREATE_RAW_TABLE = "CREATE TABLE IF NOT EXISTS "+ TABLE_RAW +
                 "(" +
+                "id INTEGER primary key AUTOINCREMENT," +
                 "timestamp LONG," +
                 "x DOUBLE," +
-                "y DOUBLE" +
+                "y DOUBLE," +
                 "z DOUBLE" +
                 ");";
 
         String CREATE_FEATURES_TABLE = "CREATE TABLE IF NOT EXISTS "+ TABLE_FEATURES+
                 "(" +
-                "_id INTEGER primary key AUTOINCREMENT," +
+                "id INTEGER primary key AUTOINCREMENT," +
                 " timestamp LONG," +
                 " avgX DOUBLE," +
                 " avgY DOUBLE," +
@@ -105,7 +111,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void addRawData(AccelerometerData ad){
         SQLiteDatabase db = getWritableDatabase();
-
 
         db.beginTransaction();
         try {
@@ -152,6 +157,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             }
         }
 
+        Log.d(TAG, "Got raw data from database"+ acHistory.size());
         return acHistory;
     }
 
