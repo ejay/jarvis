@@ -54,11 +54,15 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
     private float lastZ = 0;
 
     private static final float gravity = 9.80665F;
-    private static final float movement_threshold = 0.4f;
-    private static final int UPDATE_INTERVAL_ACCEL = 50; //5ms interval;
-    private static final int UPDATE_INTERVAL_LIGHT = 5*1000; //5ms interval;
+
+    private static final int UPDATE_INTERVAL_ACCEL = 50; //50ms interval;
+    private static final int UPDATE_INTERVAL_LIGHT = 5*100; //5ms interval;
     private long lastUpdateTime_ACCEL = System.currentTimeMillis();
     private long lastUpdateTime_LIGHT = System.currentTimeMillis();
+
+    // Thresholds for changes in sensor values for updating latest value
+    private static final int LIGHT_THRESHOLD = 20;
+    private static final float MOVEMENT_THRESHOLD = 0.4f;
 
     private final AtomicInteger movementCounter = new AtomicInteger();
 
@@ -184,9 +188,9 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
      * @return
      */
     private boolean movementThreshold(float[] values){
-        if( Math.abs(values[0] - lastX) > movement_threshold ||
-            Math.abs(values[1] - lastY) > movement_threshold ||
-            Math.abs(values[2] - lastZ) > movement_threshold ){
+        if( Math.abs(values[0] - lastX) > MOVEMENT_THRESHOLD ||
+            Math.abs(values[1] - lastY) > MOVEMENT_THRESHOLD ||
+            Math.abs(values[2] - lastZ) > MOVEMENT_THRESHOLD ){
             return true;
         }
 
@@ -265,11 +269,14 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             lastZ = event.values[2];
         }
 
+        private double lastLightValue = 0;
+
         protected void processLightEvent(SensorEvent event){
 
             long currentTime = System.currentTimeMillis();
 
-            if ((currentTime - lastUpdateTime_LIGHT) >= UPDATE_INTERVAL_LIGHT) {
+//            if ((currentTime - lastUpdateTime_LIGHT) >= UPDATE_INTERVAL_LIGHT) {
+            if (Math.abs(lastLightValue - event.values[0]) >= LIGHT_THRESHOLD) {
                 lastUpdateTime_LIGHT = currentTime;
                 Log.i("UPDATE", "Light sensor value: " + event.values[0]);
 
@@ -277,6 +284,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
                         "BedPhoneLight_raw",
                         Float.toString(event.values[0]));
 
+                lastLightValue = event.values[0];
 
                 new PostSensorDataTask().execute(postString);
             }
