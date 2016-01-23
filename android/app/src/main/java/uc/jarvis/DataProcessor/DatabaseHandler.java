@@ -157,7 +157,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             }
         }
 
-        Log.d(TAG, "Got raw data from database"+ acHistory.size());
+//        Log.d(TAG, "Got raw data from database"+ acHistory.size());
         return acHistory;
     }
 
@@ -232,8 +232,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void clearRawData(){
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
+
+        Log.d(TAG, "Trying to delete raw data");
+
         try{
-            db.delete(TABLE_RAW, null, null);
+            db.execSQL("delete from "+ TABLE_RAW);
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to delete raw data");
         } finally {

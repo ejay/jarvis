@@ -18,7 +18,7 @@ public class PostSensorDataTask extends AsyncTask<String, Void, Void> {
     @Override
     protected Void doInBackground(String... params) {
 
-        String url = "http://192.168.178.10:8080/sensor-data";
+        String url = "http://10.0.1.3:8080/sensor-data";
 
         OkHttpClient client = new OkHttpClient();
         RequestBody body = RequestBody.create(POSTDATA, params[0]);

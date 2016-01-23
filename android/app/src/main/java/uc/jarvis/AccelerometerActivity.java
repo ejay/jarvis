@@ -32,6 +32,7 @@ import java.util.Calendar;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import uc.jarvis.Chart.ChartTimer;
 import uc.jarvis.DataProcessor.DataProcessingReceiver;
 import uc.jarvis.DataProcessor.DatabaseHandler;
 
@@ -39,17 +40,11 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
     private SensorManager sm;
     private Sensor accelerometer;
+    private Sensor light;
 
     private ArrayList<AccelerometerData> sensorHistory;
 
-    private ChartTimer timerTask;
-
-    private TextView acceleration;
     private TextView currentX, currentY, currentZ;
-    private LineChart lineChart;
-    private LineData lineData;
-
-//    private Line
 
     private float deltaX = 0;
     private float deltaY = 0;
@@ -60,8 +55,10 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
     private static final float gravity = 9.80665F;
     private static final float movement_threshold = 0.4f;
-    private static final int UPDATE_INTERVAL = 5; //5ms interval;
-    private long lastUpdateTime = System.currentTimeMillis();
+    private static final int UPDATE_INTERVAL_ACCEL = 50; //5ms interval;
+    private static final int UPDATE_INTERVAL_LIGHT = 5*1000; //5ms interval;
+    private long lastUpdateTime_ACCEL = System.currentTimeMillis();
+    private long lastUpdateTime_LIGHT = System.currentTimeMillis();
 
     private final AtomicInteger movementCounter = new AtomicInteger();
 
@@ -82,6 +79,8 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         // initalize sensing
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        light = sm.getDefaultSensor(Sensor.TYPE_LIGHT);
+
         sensorHistory = new ArrayList();
         initViews();
 
@@ -102,7 +101,9 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         mSensorThread = new HandlerThread("Sensor processing thread", Thread.MAX_PRIORITY);
         mSensorThread.start();
         mSensorHandler = new Handler(mSensorThread.getLooper());
-        sm.registerListener(mListener, accelerometer, UPDATE_INTERVAL, UPDATE_INTERVAL, mSensorHandler);
+        sm.registerListener(mListener, accelerometer, UPDATE_INTERVAL_ACCEL, UPDATE_INTERVAL_ACCEL, mSensorHandler);
+        sm.registerListener(mListener, light, UPDATE_INTERVAL_LIGHT, UPDATE_INTERVAL_LIGHT, mSensorHandler);
+
 
 
 
@@ -133,6 +134,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         super.onResume();
 
         sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sm.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     protected void onPause(){
@@ -170,8 +172,10 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
     }
 
     @Override
+    /**
+     * Currently only used for light sensor
+     */
     public void onSensorChanged(SensorEvent event) {
-       displayValues();
     }
 
     /**
@@ -215,38 +219,6 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
     }
 
 
-    class ChartTimer extends TimerTask {
-
-        @Override
-        public void run() {
-            Calendar calendar = Calendar.getInstance();
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-            final String time = sdf.format(calendar.getTime());
-
-            SleepData.getInstance().addEntry(time, movementCounter.get());
-            System.out.println("Entry added: " + time + ", " + movementCounter);
-            lineChart.setData(
-                    new LineData(
-                            SleepData.getInstance().getLabelsAsArrayList(),
-                            SleepData.getInstance().getDataSet()
-                    )
-            );
-            lineChart.getLineData().getDataSetByIndex(0).setDrawFilled(true);
-            lineChart.getLineData().getDataSetByIndex(0).setFillAlpha(127);
-            lineChart.getAxisLeft().setAxisMaxValue(UPDATE_INTERVAL/50);
-            lineChart.getAxisLeft().setAxisMinValue(0.0f);
-            lineChart.getAxisRight().setAxisMaxValue(UPDATE_INTERVAL/50);
-            lineChart.getAxisRight().setAxisMinValue(0.0f);
-            lineChart.getAxisLeft().setDrawGridLines(false);
-            lineChart.getAxisRight().setDrawGridLines(false);
-            lineChart.getXAxis().setDrawGridLines(false);
-            lineChart.getLineData().getDataSetByIndex(0).setDrawCircles(false);
-            lineChart.getLineData().setDrawValues(false);
-
-
-        }
-    }
-
     private final SensorEventListener mListener = new SensorEventListener() {
 
         @Override
@@ -258,23 +230,20 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
                 case Sensor.TYPE_ACCELEROMETER:
                     processAccelerometerEvent(event);
                     break;
+                case Sensor.TYPE_LIGHT:
+                    processLightEvent(event);
             }
         }
 
         protected void processAccelerometerEvent(SensorEvent event){
+
             long currentTime = System.currentTimeMillis();
 
-            if ((currentTime - lastUpdateTime) >= UPDATE_INTERVAL) {
-                lastUpdateTime = currentTime;
+            if ((currentTime - lastUpdateTime_ACCEL) >= UPDATE_INTERVAL_ACCEL) {
+                lastUpdateTime_ACCEL = currentTime;
 
                 if (movementThreshold(event.values)) {
                     if (movementThreshold(event.values)) {
-//                    Log.i("UPDATE", "Accelerometer sensor value: " + event.values);
-                        // post sensordata to raspberry
-                        // should probably only do states of the phone
-                        // e.g. sleep awake rem-sleep or something
-//                        writeDataToCSV(event);
-
                         // store sensordata
                         long timestamp = System.currentTimeMillis();
                         double x = event.values[0];
@@ -284,10 +253,8 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
                         dbHandler.addRawData(data);
 
-                        sensorHistory.add(data);
-//                        PostSensorData(event);
-                        movementCounter.incrementAndGet();
-                        Log.i("UPDATE", "Movement total "+ movementCounter);
+//                        movementCounter.incrementAndGet();
+                        Log.i("UPDATE", "Amount of movement recorded: "+ dbHandler.getRawData().size());
                     }
                 }
             }
@@ -298,16 +265,21 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             lastZ = event.values[2];
         }
 
-        protected void writeDataToCSV(SensorEvent event){
-            // store data to csv
-//            Calendar calendar = Calendar.getInstance();
-//            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-//            final String time = sdf.format(calendar.getTime());
-//            try {
-//                writer.write(time+","+event.values[0]+","+event.values[1]+","+event.values[2]+"\n");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+        protected void processLightEvent(SensorEvent event){
+
+            long currentTime = System.currentTimeMillis();
+
+            if ((currentTime - lastUpdateTime_LIGHT) >= UPDATE_INTERVAL_LIGHT) {
+                lastUpdateTime_LIGHT = currentTime;
+                Log.i("UPDATE", "Light sensor value: " + event.values[0]);
+
+                String postString = String.format("key=%s&value=%s",
+                        "BedPhoneLight_raw",
+                        Float.toString(event.values[0]));
+
+
+                new PostSensorDataTask().execute(postString);
+            }
         }
 
         @Override
@@ -321,23 +293,6 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             WindowManager.LayoutParams WMLP = getWindow().getAttributes();
             WMLP.screenBrightness = 0.15F;
             getWindow().setAttributes(WMLP);
-        }
-
-        protected void createChart(){
-            timerTask = new ChartTimer();
-
-            lineData = new LineData(
-                    SleepData.getInstance().getLabelsAsArrayList(),
-                    SleepData.getInstance().getDataSet()
-            );
-
-            lineChart = new LineChart(getApplicationContext());
-            lineChart.setData(lineData);
-//        lineChart.setVisibleXRangeMaximum(120);
-            lineChart.setVisibleYRangeMaximum(50, YAxis.AxisDependency.LEFT);
-            lineChart.setMaxVisibleValueCount(10);
-
-
         }
     };
 
