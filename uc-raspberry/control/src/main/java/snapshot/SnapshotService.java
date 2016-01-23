@@ -19,7 +19,7 @@ public class SnapshotService {
             "TimeOfTodaysFirstCalendarEvent",
             "TodoListIsEmpty",
             "PlannedWakeUpTime",
-            "LightsAreOn",
+//            "LightsAreOn",
             "Accelerometer",
             "WifiFingerprint",
             "UserHasWokenUp",
