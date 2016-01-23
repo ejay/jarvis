@@ -24,10 +24,10 @@ public class Main {
         System.out.println(NSocket.write("{\"action\":\"identify\"}"));
 
         while(count < 240){
-            String value = storage.get("light");
-            System.out.println("light value = " + value);
+//            String value = storage.get("light");
+//            System.out.println("light value = " + value);
 
-            if(Double.parseDouble(value) > 100.0){
+            if(Double.parseDouble("0.0") > 100.0){
                 NSocket.write("{\"action\": \"send\", \"code\": {\"protocol\": [\"kaku_switch\"],\"id\": 17432370,\"unit\": 0,\"off\": 1}}");
             }else{
                 NSocket.write("{\"action\": \"send\", \"code\": {\"protocol\": [\"kaku_switch\"],\"id\": 17432370,\"unit\": 0,\"on\": 1}}");

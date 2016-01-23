@@ -1,36 +1,44 @@
 package alarm;
 
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import light.NSocket;
 import storage.Storage;
 
-import java.time.LocalDateTime;
+import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 public class AlarmService {
-    private static long oneSidedRangeInMinutes = 20;
+    private static long oneSidedRangeInMinutes = 1;
 
     public static void main(String[] args){
 
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss");
-        LocalDateTime alarmTime;
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        LocalTime alarmTime;
 
         while(true){
+            NSocket.connect("192.168.178.69", 57286);
             Storage storage = new Storage("localhost");
+            storage.store("PlannedWakeUpTime", "23:26:00");
             String alarmTimeString = storage.get("PlannedWakeUpTime");
-            LocalDateTime currentTime = LocalDateTime.now();
-            alarmTime = LocalDateTime.parse(alarmTimeString, dateTimeFormatter);
+            LocalTime currentTime = LocalTime.now();
+            alarmTime = LocalTime.parse(alarmTimeString, dateTimeFormatter);
             boolean userIsAwake = Boolean.parseBoolean(storage.get("UserHasWokenUp"));
 
             if(currentTime.isAfter(alarmTime.minusMinutes(oneSidedRangeInMinutes))){
-                // TODO Turn on light
-                NSocket.connect("192.168.178.69", 57286);
-                NSocket.write("{\"action\": \"send\", \"code\": {\"protocol\": [\"kaku_switch\"],\"id\": 17432370,\"unit\": 0,\"off\": 1}}");
+                // Turn on light
+                System.out.println("Turning on light");
+                NSocket.write("{\"action\": \"send\", \"code\": {\"protocol\": [\"kaku_switch\"],\"id\": 17432370,\"unit\": 0,\"on\": 1}}");
             }
 
+userIsAwake = false;
             if(currentTime.isAfter(alarmTime.plusMinutes(oneSidedRangeInMinutes)) && !userIsAwake){
                 // After the acceptable range, sound alarm regardless of sleep cycle.
                 //TODO sound alarm.
+                soundAlarm();
             }
 
             String sleepCycle = storage.get("CurrentSleepCycleUser");
@@ -38,6 +46,7 @@ public class AlarmService {
             long minutesBetween = ChronoUnit.MINUTES.between(currentTime, alarmTime);
             if(minutesBetween < oneSidedRangeInMinutes && sleepCycle == "awake" && !userIsAwake){
                 // TODO Sound the alarm.
+                soundAlarm();
             }
 
             try {
@@ -45,6 +54,20 @@ public class AlarmService {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+//            NSocket.close();
         }
+
+    }
+
+    private static MediaPlayer mediaPlayer;
+    public static void soundAlarm(){
+        System.out.println("Sounding alarm!");
+        String bip = "control/bip.mp3";
+
+         JFXPanel fxPanel = new JFXPanel();
+         Media hit = new Media(Paths.get(bip).toUri().toString());
+         mediaPlayer = new MediaPlayer(hit);
+         mediaPlayer.play();
     }
 }
