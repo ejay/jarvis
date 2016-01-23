@@ -106,6 +106,8 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                startCalendar();
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -124,6 +126,11 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             m_service = null;
         }
     };
+
+    protected void startCalendar(){
+        Intent intent = new Intent(this,CalendarActivity.class);
+        startActivity(intent);
+    }
 
     protected void initializeSensorListeners(){
 

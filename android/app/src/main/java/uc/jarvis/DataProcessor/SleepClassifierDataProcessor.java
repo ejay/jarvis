@@ -5,7 +5,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import org.sleeper.propclasses.dataprocessor_manager.clDataProcessor;
-import org.sleeper.propclasses.dataprocessor_manager.clStatManager;
+//import org.sleeper.propclasses.dataprocessor_manager.clStatManager;
 
 import uc.jarvis.PostSensorDataTask;
 
@@ -31,13 +31,13 @@ public class SleepClassifierDataProcessor extends clDataProcessor implements clD
         super.measureStop();
     }
 
-    @Override
-    public clDatabaseManager getDatabase() {return super.getDatabase();}
+    //@Override
+    //public clDatabaseManager getDatabase() {return super.getDatabase();}
 
-    @Override
-    public clStatManager createStatManager(int i) {
-        return null;
-    }
+//    @Override
+//    public clStatManager createStatManager(int i) {
+//        return null;
+//    }
 
     @Override
     public void onSleepStateRetrievedEvent(int sleepState, Double[] doubles) {

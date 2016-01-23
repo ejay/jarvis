@@ -19,7 +19,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>Main</mainClass>
+                            <mainClass>light.Main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
