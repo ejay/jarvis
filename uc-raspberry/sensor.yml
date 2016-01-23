@@ -1,5 +1,5 @@
-template: Hello, %s!
-defaultName: Stranger
+logging:
+  level: INFO
 
 server:
   applicationConnectors:

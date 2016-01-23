@@ -9,7 +9,7 @@ import io.dropwizard.setup.Environment;
 
 import java.util.ArrayList;
 import java.util.List;
-
+//Use this as main. run with "server sensor.yml" as command-line arguments
 public class SensorApplication extends Application<SensorConfig> {
     List<ContextService> contextServices;
 
