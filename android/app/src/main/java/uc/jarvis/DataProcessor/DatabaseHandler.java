@@ -236,7 +236,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.d(TAG, "Trying to delete raw data");
 
         try{
-            db.execSQL("delete from "+ TABLE_RAW);
+            db.execSQL("DELETE FROM "+ TABLE_RAW);
+            db.delete(TABLE_RAW, null, null);
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to delete raw data");
         } finally {
