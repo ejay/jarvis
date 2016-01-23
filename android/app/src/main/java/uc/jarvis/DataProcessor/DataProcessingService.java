@@ -43,15 +43,15 @@ public class DataProcessingService extends IntentService {
         ArrayList sensorHistory = bundle.getParcelableArrayList("sensorHistory");
 
         accelerometerRawList = dbHandler.getRawData();
-        dbHandler.clearRawData();
 
-//        Log.i("DataProcessingService", "Completed service @ " + sensorHistory.toString());
+
         // process data
         ProcessedSensorDataObject pdo = new ProcessedSensorDataObject();
         pdo = processedData(accelerometerRawList, pdo);
         PostSensorData(pdo);
+
         // clear history
-//        sensorHistory = new ArrayList();
+        dbHandler.clearRawData();
 
         Log.i("DataProcessingService", "Completed service @ " + SystemClock.elapsedRealtime());
         DataProcessingReceiver.completeWakefulIntent(intent);
@@ -64,11 +64,13 @@ public class DataProcessingService extends IntentService {
 //        String json = gson.toJson(pdo);
 //        Log.i("PostSensorData", json);
 
-        String postString = String.format("timestamp=%s&sensorId=%s&sensorType=%s&value=%s",
-                Long.toString(Calendar.getInstance().getTime().getTime()),
-                "003",
+        String postString = String.format("key=%s&value=%s",
                 "AccelerometerData",
                 pdo.toString());
+
+//        String postString = String.format("key=%s&value=%s",
+//                "Light",
+//                Float.toString(1));
 
         new PostSensorDataTask().execute(postString);
     }

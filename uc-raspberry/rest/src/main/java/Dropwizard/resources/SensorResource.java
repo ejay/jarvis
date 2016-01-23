@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.logging.Logger;
 
+
 @Path("/sensor-data")
 public class SensorResource {
     private final static Logger logger = Logger.getLogger(SensorResource.class.getName());
@@ -50,21 +51,4 @@ public class SensorResource {
 
         servicesToUpdate.forEach(ContextService::update);
     }
-
-    @POST
-//    @Path("json")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void receiveJSON(JSONPObject jsonObject){
-        Storage storage = new Storage("localhost");
-
-        if(jsonObject == null){
-            logger.warning("Attempted to insert empty key, storing failed.");
-            return;
-        }
-
-        logger.info(String.format(jsonObject.toString()));
-
-    }
-
-
 }

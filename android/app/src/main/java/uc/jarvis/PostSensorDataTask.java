@@ -21,7 +21,7 @@ public class PostSensorDataTask extends AsyncTask<String, Void, Void> {
         String url = "http://localhost:8080/sensor-data/";
 
         OkHttpClient client = new OkHttpClient();
-        RequestBody body = RequestBody.create(JSON, params[0]);
+        RequestBody body = RequestBody.create(POSTDATA, params[0]);
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
