@@ -1,5 +1,6 @@
 package alarm;
 
+import light.NSocket;
 import storage.Storage;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,12 @@ public class AlarmService {
             LocalDateTime currentTime = LocalDateTime.now();
             alarmTime = LocalDateTime.parse(alarmTimeString, dateTimeFormatter);
             boolean userIsAwake = Boolean.parseBoolean(storage.get("UserHasWokenUp"));
+
+            if(currentTime.isAfter(alarmTime.minusMinutes(oneSidedRangeInMinutes))){
+                // TODO Turn on light
+                NSocket.connect("192.168.178.69", 57286);
+                NSocket.write("{\"action\": \"send\", \"code\": {\"protocol\": [\"kaku_switch\"],\"id\": 17432370,\"unit\": 0,\"off\": 1}}");
+            }
 
             if(currentTime.isAfter(alarmTime.plusMinutes(oneSidedRangeInMinutes)) && !userIsAwake){
                 // After the acceptable range, sound alarm regardless of sleep cycle.
