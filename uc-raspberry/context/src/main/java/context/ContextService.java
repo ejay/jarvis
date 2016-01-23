@@ -13,6 +13,7 @@ public abstract class ContextService {
 
         switch (keyString){
             case "BedPhoneLight_raw":
+                break;
             case "RoomLight_raw":
                 Double value = Double.parseDouble(valueString);
 
@@ -23,6 +24,20 @@ public abstract class ContextService {
                 }else if(value >= 500){
                     discretizedValue = "high";
                 }
+                logger.info("discretized key: " + keyString+":"+discretizedValue);
+                break;
+            case "CurrentSleepCycleUser_raw":
+                Double sleepState = Double.parseDouble(valueString);
+
+                if(sleepState == 0){
+                    discretizedValue = "sleep";
+                }else if(sleepState == 1){
+                    discretizedValue = "rem";
+                }else if(sleepState == 2){
+                    discretizedValue = "awake";
+                }
+                logger.info("discretized key: " + keyString+":"+discretizedValue);
+
                 break;
             default:
                 logger.warning("Attempted to discretize unkown key: " + keyString);

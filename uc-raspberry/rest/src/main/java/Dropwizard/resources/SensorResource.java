@@ -43,7 +43,7 @@ public class SensorResource {
         if(keyString.contains("_raw")){
             String discretizedValue = ContextService.discretize(keyString, valueString);
             keyString = keyString.substring(0,keyString.length() - 4);
-
+            logger.info("Discretized: "+ keyString +" = "+ discretizedValue);
             storage.store(keyString, discretizedValue);
         }
 
