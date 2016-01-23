@@ -20,8 +20,8 @@ public class SnapshotService {
             "TodoListIsEmpty",
             "PlannedWakeUpTime",
             "LightsAreOn",
-            "Accelerometer_raw",
-            "WifiFingerprint_raw",
+            "Accelerometer",
+            "WifiFingerprint",
             "UserHasWokenUp",
             "CurrentSleepCycleUser"
     };
