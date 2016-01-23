@@ -26,15 +26,20 @@ import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.LineData;
 
+import org.sleeper.propclasses.app_manager.clApp;
+import org.sleeper.propclasses.dataprocessor_manager.clDataProcessor;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import uc.jarvis.Chart.ChartTimer;
 import uc.jarvis.DataProcessor.DataProcessingReceiver;
 import uc.jarvis.DataProcessor.DatabaseHandler;
+import uc.jarvis.DataProcessor.SleepClassifierDataProcessor;
 
 public class AccelerometerActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -54,11 +59,15 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
     private float lastZ = 0;
 
     private static final float gravity = 9.80665F;
-    private static final float movement_threshold = 0.4f;
-    private static final int UPDATE_INTERVAL_ACCEL = 50; //5ms interval;
-    private static final int UPDATE_INTERVAL_LIGHT = 5*1000; //5ms interval;
+
+    private static final int UPDATE_INTERVAL_ACCEL = 50; //50ms interval;
+    private static final int UPDATE_INTERVAL_LIGHT = 5*100; //5ms interval;
     private long lastUpdateTime_ACCEL = System.currentTimeMillis();
     private long lastUpdateTime_LIGHT = System.currentTimeMillis();
+
+    // Thresholds for changes in sensor values for updating latest value
+    private static final int LIGHT_THRESHOLD = 100;
+    private static final float MOVEMENT_THRESHOLD = 0.4f;
 
     private final AtomicInteger movementCounter = new AtomicInteger();
 
@@ -67,6 +76,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
     DatabaseHandler dbHandler;
 
+    private clApp sleepApp=null ; // sleep classifier
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +93,15 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
         sensorHistory = new ArrayList();
         initViews();
+
+
+
+        /**
+         * Sleep data classifier
+         */
+        clDataProcessor sleepClassifierDataProcessor = new SleepClassifierDataProcessor(this);
+        sleepApp = new clApp(this,sleepClassifierDataProcessor);
+        sleepApp.startSleepMode(60000*10); // start for 10 hours
 
         dbHandler = DatabaseHandler.getInstance(getBaseContext());
 
@@ -105,14 +124,27 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         sm.registerListener(mListener, light, UPDATE_INTERVAL_LIGHT, UPDATE_INTERVAL_LIGHT, mSensorHandler);
 
 
-
-
-//        // create database and table
-//        db=openOrCreateDatabase("SensorData", Context.MODE_PRIVATE, null);
-//        db.execSQL("CREATE TABLE IF NOT EXISTS AccelerometerData(timestamp LONG,name VARCHAR,marks VARCHAR);");
-//        db.execSQL("CREATE TABLE IF NOT EXISTS ProcessedFeature(_id INTEGER primary key AUTOINCREMENT, avgX DOUBLE, avgY DOUBLE, avgZ DOUBLE, minX DOUBLE, minY DOUBLE, minZ DOUBLE, maxX DOUBLE, maxY DOUBLE, maxZ DOUBLE, rmsX DOUBLE, rmsY DOUBLE, rmsZ DOUBLE);");
-
-//        tablo2="CREATE TABLE ProcessedFeature (_id INTEGER primary key AUTOINCREMENT,ortX REAL,ortY REAL,ortZ REAL,stdX REAL,stdY REAL,stdZ REAL,maxX REAL,maxY REAL,maxZ REAL,aadX REAL,aadY REAL,aadZ REAL,averageResultantAcc REAL,binX1 INTEGER,binX2 INTEGER,binX3 INTEGER,binX4 INTEGER,binX5 INTEGER,binX6 INTEGER,binX7 INTEGER,binX8 INTEGER,binX9 INTEGER,binX10 INTEGER,binY1 INTEGER,binY2 INTEGER,binY3 INTEGER,binY4 INTEGER,binY5 INTEGER,binY6 INTEGER,binY7 INTEGER,binY8 INTEGER,binY9 INTEGER,binY10 INTEGER,binZ1 INTEGER,binZ2 INTEGER,binZ3 INTEGER,binZ4 INTEGER,binZ5 INTEGER,binZ6 INTEGER,binZ7 INTEGER,binZ8 INTEGER,binZ9 INTEGER,binZ10 INTEGER);";
+//        sleepApp.startSleepMode(60000);
+//        HandlerThread mSleepThread = new HandlerThread("Sleep classifier thread", Thread.MAX_PRIORITY);
+//        mSleepThread.start();
+//        Handler mSensorHandler = new Handler(mSleepThread.getLooper());
+//        mSensorHandler.
+//
+//        final Handler handler = new Handler();
+//        Timer timer = new Timer();
+//        TimerTask doSleepCycleTask = new TimerTask() {
+//            @Override
+//            public void run() {
+//                handler.post(new Runnable() {
+//                    public void run() {
+//                        try {
+//
+//                        } catch (Exception e) {}
+//                    }
+//                });
+//            }
+//        };
+//        timer.schedule(doSleepCycleTask, 0, 60000); //execute in every 10 ms
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -130,11 +162,15 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
 
 
+
+
     protected void onResume(){
         super.onResume();
 
         sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         sm.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL);
+
+        sleepApp.startSleepMode(60000);
     }
 
     protected void onPause(){
@@ -184,9 +220,9 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
      * @return
      */
     private boolean movementThreshold(float[] values){
-        if( Math.abs(values[0] - lastX) > movement_threshold ||
-            Math.abs(values[1] - lastY) > movement_threshold ||
-            Math.abs(values[2] - lastZ) > movement_threshold ){
+        if( Math.abs(values[0] - lastX) > MOVEMENT_THRESHOLD ||
+            Math.abs(values[1] - lastY) > MOVEMENT_THRESHOLD ||
+            Math.abs(values[2] - lastZ) > MOVEMENT_THRESHOLD ){
             return true;
         }
 
@@ -265,11 +301,14 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             lastZ = event.values[2];
         }
 
+        private double lastLightValue = 0;
+
         protected void processLightEvent(SensorEvent event){
 
             long currentTime = System.currentTimeMillis();
 
-            if ((currentTime - lastUpdateTime_LIGHT) >= UPDATE_INTERVAL_LIGHT) {
+//            if ((currentTime - lastUpdateTime_LIGHT) >= UPDATE_INTERVAL_LIGHT) {
+            if (Math.abs(lastLightValue - event.values[0]) >= LIGHT_THRESHOLD) {
                 lastUpdateTime_LIGHT = currentTime;
                 Log.i("UPDATE", "Light sensor value: " + event.values[0]);
 
@@ -277,6 +316,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
                         "BedPhoneLight_raw",
                         Float.toString(event.values[0]));
 
+                lastLightValue = event.values[0];
 
                 new PostSensorDataTask().execute(postString);
             }
