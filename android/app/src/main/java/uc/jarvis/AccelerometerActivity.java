@@ -1,16 +1,19 @@
 package uc.jarvis;
 
-import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.Context;
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -22,32 +25,21 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.LineData;
-
-import org.sleeper.propclasses.app_manager.clApp;
 import org.sleeper.propclasses.dataprocessor_manager.clDataProcessor;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import uc.jarvis.Chart.ChartTimer;
-import uc.jarvis.DataProcessor.DataProcessingReceiver;
 import uc.jarvis.DataProcessor.DatabaseHandler;
 import uc.jarvis.DataProcessor.SleepClassifierDataProcessor;
+import uc.jarvis.Sleep.SleepTrackService;
+import uc.jarvis.Sleep.SleepTrackBroadcastReceiver;
 
 public class AccelerometerActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager sm;
     private Sensor accelerometer;
     private Sensor light;
-
-    private ArrayList<AccelerometerData> sensorHistory;
+    private WifiManager wifiManager = null;
 
     private TextView currentX, currentY, currentZ;
 
@@ -73,10 +65,10 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 
     private HandlerThread mSensorThread;
     private Handler mSensorHandler;
+    private SleepTrackService sleepApp; // sleep classifier
+    private Service m_service;
 
     DatabaseHandler dbHandler;
-
-    private clApp sleepApp=null ; // sleep classifier
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,65 +78,28 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // initalize sensing
-        sm = (SensorManager) getSystemService(SENSOR_SERVICE);
-        accelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        light = sm.getDefaultSensor(Sensor.TYPE_LIGHT);
-
-        sensorHistory = new ArrayList();
         initViews();
 
+        // initalize sensing
+        sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+        wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
 
+        // initialize database used for raw sensor data
+//        dbHandler = DatabaseHandler.getInstance(getApplicationContext());
 
-        /**
-         * Sleep data classifier
-         */
+        initializeSensorListeners();
+//        initSleepTracking();
+
         clDataProcessor sleepClassifierDataProcessor = new SleepClassifierDataProcessor(this);
-        sleepApp = new clApp(this,sleepClassifierDataProcessor);
-        sleepApp.startSleepMode(60000*10); // start for 10 hours
-
-        dbHandler = DatabaseHandler.getInstance(getBaseContext());
-
-        // background dataprocessing every 5 minutes
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        Intent dataProcessing = new Intent(AccelerometerActivity.this, DataProcessingReceiver.class);
-//        dataProcessing.putExtra("sensorHistory", sensorHistory);
-        dataProcessing.putParcelableArrayListExtra("sensorHistory", sensorHistory);
-        PendingIntent dataProcessingIntent  = PendingIntent.getBroadcast(AccelerometerActivity.this, 0, dataProcessing, 0);
-        alarmManager.setInexactRepeating(AlarmManager.RTC, 5 * 1000, 5 * 1000, dataProcessingIntent);
-//        alarmManager.set(AlarmManager.RTC, 1, dataProcessingIntent);
-//        alarmManager.set(AlarmManager.RTC, 60*1000*5, 60*1000*5, dataProcessingIntent);
-//        alarmManager.setInexactRepeating(AlarmManager.RTC, 60*1000*5, 60*1000*5, dataProcessingIntent);
+        sleepApp = new SleepTrackService(this,sleepClassifierDataProcessor);
+        sleepApp.startSleepMode(35000000); // start for 8,3+ hours
 
 
-        mSensorThread = new HandlerThread("Sensor processing thread", Thread.MAX_PRIORITY);
-        mSensorThread.start();
-        mSensorHandler = new Handler(mSensorThread.getLooper());
-        sm.registerListener(mListener, accelerometer, UPDATE_INTERVAL_ACCEL, UPDATE_INTERVAL_ACCEL, mSensorHandler);
-        sm.registerListener(mListener, light, UPDATE_INTERVAL_LIGHT, UPDATE_INTERVAL_LIGHT, mSensorHandler);
-
-
-//        sleepApp.startSleepMode(60000);
-//        HandlerThread mSleepThread = new HandlerThread("Sleep classifier thread", Thread.MAX_PRIORITY);
-//        mSleepThread.start();
-//        Handler mSensorHandler = new Handler(mSleepThread.getLooper());
-//        mSensorHandler.
-//
-//        final Handler handler = new Handler();
-//        Timer timer = new Timer();
-//        TimerTask doSleepCycleTask = new TimerTask() {
-//            @Override
-//            public void run() {
-//                handler.post(new Runnable() {
-//                    public void run() {
-//                        try {
-//
-//                        } catch (Exception e) {}
-//                    }
-//                });
-//            }
-//        };
-//        timer.schedule(doSleepCycleTask, 0, 60000); //execute in every 10 ms
+//        this.registerReceiver()
+//        Intent sleepTracking = new Intent(this, SleepTrackBroadcastReceiver.class);
+//        startService(sleepTracking);
+//        bindService(sleepTracking, m_serviceConnection, BIND_AUTO_CREATE);
+//        PendingIntent sleepTrackingIntent = PendingIntent.getBroadcast(AccelerometerActivity.this, 0, sleepTracking, 0);
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -160,8 +115,42 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 //        Intent batteryStatus = context.registerReceiver(null, ifilter);
     }
 
+    private ServiceConnection m_serviceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            m_service = ((SleepTrackService.SleepTrackBinder)service).getService();
+        }
 
+        public void onServiceDisconnected(ComponentName className) {
+            m_service = null;
+        }
+    };
 
+    protected void initializeSensorListeners(){
+
+        accelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        light = sm.getDefaultSensor(Sensor.TYPE_LIGHT);
+
+        mSensorThread = new HandlerThread("Sensor processing thread", Thread.MAX_PRIORITY);
+        mSensorThread.start();
+        mSensorHandler = new Handler(mSensorThread.getLooper());
+        sm.registerListener(mListener, accelerometer, UPDATE_INTERVAL_ACCEL, UPDATE_INTERVAL_ACCEL, mSensorHandler);
+        sm.registerListener(mListener, light, UPDATE_INTERVAL_LIGHT, UPDATE_INTERVAL_LIGHT, mSensorHandler);
+    }
+
+    /**
+     * Sleep data classifier
+     */
+    protected void initSleepTracking(){
+//        clDataProcessor sleepClassifierDataProcessor = new SleepClassifierDataProcessor(this);
+//        sleepApp = new SleepTrackService(this, sleepClassifierDataProcessor);
+//        sleepApp.setTime(600000);
+//        sleepApp.run();
+//        Intent i = new Intent(this, SleepTrackService.class);
+//        startService(i);
+
+//        sleepApp = new SleepTrackService(this,sleepClassifierDataProcessor);
+//        sleepApp.startSleepMode(60000*10); // start for 10 hours
+    }
 
 
     protected void onResume(){
@@ -170,7 +159,11 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         sm.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL);
 
-        sleepApp.startSleepMode(60000);
+        Intent sleepTracking = new Intent(this, SleepTrackBroadcastReceiver.class);
+        startService(sleepTracking);
+        PendingIntent sleepTrackingIntent = PendingIntent.getBroadcast(AccelerometerActivity.this, 0, sleepTracking, 0);
+
+//        sleepApp.startSleepMode(60000);
     }
 
     protected void onPause(){
@@ -287,10 +280,10 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
                         double z = event.values[2];
                         AccelerometerData data = new AccelerometerData(timestamp,x,y,z);
 
-                        dbHandler.addRawData(data);
+//                        dbHandler.addRawData(data);
 
 //                        movementCounter.incrementAndGet();
-                        Log.i("UPDATE", "Amount of movement recorded: "+ dbHandler.getRawData().size());
+//                        Log.i("UPDATE", "Amount of movement recorded: "+ dbHandler.getRawData().size());
                     }
                 }
             }

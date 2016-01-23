@@ -24,6 +24,10 @@
             android:name = ".DataProcessor.DataProcessingService"
             android:exported= "false"/>
 
+        <service
+            android:name = ".Sleep.SleepTrackService"
+            android:exported= "false"/>
+
         <receiver
             android:name=".DataProcessor.DataProcessingReceiver">
         </receiver>
