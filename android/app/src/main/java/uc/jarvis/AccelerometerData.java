@@ -33,6 +33,18 @@ public class AccelerometerData implements Parcelable{
         this.z = z;
     }
 
+    public static final Creator<AccelerometerData> CREATOR = new Creator<AccelerometerData>() {
+        @Override
+        public AccelerometerData createFromParcel(Parcel in) {
+            return new AccelerometerData(in);
+        }
+
+        @Override
+        public AccelerometerData[] newArray(int size) {
+            return new AccelerometerData[size];
+        }
+    };
+
     public long getTimestamp(){
         return timestamp;
     }

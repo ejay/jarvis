@@ -113,4 +113,8 @@ public class ProcessedSensorDataObject {
     public void setRmsZ(double rmsZ) {
         this.rmsZ = rmsZ;
     }
+
+    public String toString(){
+        return "avgX="+avgX+", avgY="+avgY+", avgZ="+avgZ+", minX="+minX+", minY="+minY+", avgZ="+minZ+", maxZ="+maxX+", maxY="+maxY+", maxZ="+maxZ+", rmsX="+rmsY+", rmsX="+rmsX+", rmsZ="+rmsZ;
+    }
 }
