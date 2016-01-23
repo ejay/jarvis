@@ -37,13 +37,8 @@ public class DataProcessingService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
         Bundle bundle = intent.getExtras();
-//        ArrayList sensorHistory = bundle.getParcelableArrayList("sensorHistory");
-        ArrayList sensorHistory = bundle.getParcelableArrayList("sensorHistory");
-
         accelerometerRawList = dbHandler.getRawData();
-
 
         // process data
         ProcessedSensorDataObject pdo = new ProcessedSensorDataObject();
@@ -60,17 +55,9 @@ public class DataProcessingService extends IntentService {
 
     private void PostSensorData(ProcessedSensorDataObject pdo){
 
-//        Gson gson = new Gson();
-//        String json = gson.toJson(pdo);
-//        Log.i("PostSensorData", json);
-
         String postString = String.format("key=%s&value=%s",
-                "AccelerometerData",
+                "Accelerometer",
                 pdo.toString());
-
-//        String postString = String.format("key=%s&value=%s",
-//                "Light",
-//                Float.toString(1));
 
         new PostSensorDataTask().execute(postString);
     }
@@ -84,9 +71,9 @@ public class DataProcessingService extends IntentService {
      */
     private ProcessedSensorDataObject processedData(List<AccelerometerRaw> sensorHistory, ProcessedSensorDataObject pdo){
 
-//        if(sensorHistory == null || sensorHistory.isEmpty()){
-//            return pdo;
-//        }
+        if(sensorHistory == null || sensorHistory.isEmpty()){
+            return pdo;
+        }
 
         double sumX, sumY, sumZ;
         sumX = sumY = sumZ = 0.0;
