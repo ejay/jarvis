@@ -11,15 +11,18 @@ import android.util.Log;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import uc.jarvis.AccelerometerData;
+import uc.jarvis.Models.AccelerometerRaw;
 import uc.jarvis.PostSensorDataTask;
 import uc.jarvis.ProcessedSensorDataObject;
 
 public class DataProcessingService extends IntentService {
 
     DatabaseHandler dbHandler;
+    List<AccelerometerRaw> accelerometerRawList;
 
     public DataProcessingService() {
         super("DataProcessingService");
@@ -39,14 +42,14 @@ public class DataProcessingService extends IntentService {
 //        ArrayList sensorHistory = bundle.getParcelableArrayList("sensorHistory");
         ArrayList sensorHistory = bundle.getParcelableArrayList("sensorHistory");
 
-        dbHandler.getRawData();
-//        dbHandler.clearRawData();
+        accelerometerRawList = dbHandler.getRawData();
+        dbHandler.clearRawData();
 
 //        Log.i("DataProcessingService", "Completed service @ " + sensorHistory.toString());
         // process data
-//        ProcessedSensorDataObject pdo = new ProcessedSensorDataObject();
-//        pdo = processedData(sensorHistory, pdo);
-//        PostSensorData(pdo);
+        ProcessedSensorDataObject pdo = new ProcessedSensorDataObject();
+        pdo = processedData(accelerometerRawList, pdo);
+        PostSensorData(pdo);
         // clear history
 //        sensorHistory = new ArrayList();
 
@@ -57,11 +60,17 @@ public class DataProcessingService extends IntentService {
 
     private void PostSensorData(ProcessedSensorDataObject pdo){
 
-        Gson gson = new Gson();
-        String json = gson.toJson(pdo);
-        Log.i("PostSensorData", json);
+//        Gson gson = new Gson();
+//        String json = gson.toJson(pdo);
+//        Log.i("PostSensorData", json);
 
-        new PostSensorDataTask().execute(json);
+        String postString = String.format("timestamp=%s&sensorId=%s&sensorType=%s&value=%s",
+                Long.toString(Calendar.getInstance().getTime().getTime()),
+                "003",
+                "AccelerometerData",
+                pdo.toString());
+
+        new PostSensorDataTask().execute(postString);
     }
 
     /**
@@ -71,7 +80,7 @@ public class DataProcessingService extends IntentService {
      * @param pdo
      * @return
      */
-    private ProcessedSensorDataObject processedData(List<AccelerometerData> sensorHistory, ProcessedSensorDataObject pdo){
+    private ProcessedSensorDataObject processedData(List<AccelerometerRaw> sensorHistory, ProcessedSensorDataObject pdo){
 
 //        if(sensorHistory == null || sensorHistory.isEmpty()){
 //            return pdo;
@@ -87,7 +96,7 @@ public class DataProcessingService extends IntentService {
         msX = msY = msZ = 0.0;
 
 
-        for (AccelerometerData ah : sensorHistory){
+        for (AccelerometerRaw ah : sensorHistory){
             // avg
             sumX += ah.getX();
             sumY += ah.getY();

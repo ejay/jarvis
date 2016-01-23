@@ -18,7 +18,7 @@ public class PostSensorDataTask extends AsyncTask<String, Void, Void> {
     @Override
     protected Void doInBackground(String... params) {
 
-        String url = "http://localhost:8080/sensor-data/json";
+        String url = "http://localhost:8080/sensor-data/";
 
         OkHttpClient client = new OkHttpClient();
         RequestBody body = RequestBody.create(JSON, params[0]);

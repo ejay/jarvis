@@ -75,8 +75,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         // create database and table
 //        db=openOrCreateDatabase("SensorData", Context.MODE_PRIVATE, null);
-        db.execSQL("DROP TABLE IF EXISTS"+ TABLE_RAW);
-        db.execSQL("DROP TABLE IF EXISTS" + TABLE_FEATURES);
+        db.execSQL("DROP TABLE IF EXISTS "+ TABLE_RAW);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FEATURES);
 
         String CREATE_RAW_TABLE = "CREATE TABLE IF NOT EXISTS "+ TABLE_RAW +
                 "(" +
