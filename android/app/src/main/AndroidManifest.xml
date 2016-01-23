@@ -4,8 +4,12 @@
 
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
 
     <application
         android:allowBackup="true"
@@ -13,14 +17,11 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <service
-            android:name = ".DataProcessor.DataProcessingService"
-            android:exported= "false"/>
+            android:name=".DataProcessor.DataProcessingService"
+            android:exported="false" />
 
-        <receiver
-            android:name=".DataProcessor.DataProcessingReceiver">
-        </receiver>
+        <receiver android:name=".DataProcessor.DataProcessingReceiver"></receiver>
 
         <activity
             android:name=".AccelerometerActivity"
@@ -38,14 +39,18 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".RealtimeChartActivity"
             android:label="@string/title_activity_realtime_chart"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".CalendarActivity"
+            android:label="@string/title_activity_calendar"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

@@ -25,7 +25,7 @@ public class SensorResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     //Test with: curl -i -d "key=testkey3&value=testvalue3" http://localhost:8080/sensor-data
     public void receiveKeyValuePair(@FormParam("key") Optional<String> key, @FormParam("value") Optional<String> value){
-        Storage storage = new Storage("localhost");
+        Storage storage = new Storage("192.168.1.218");
         String keyString = key.get();
         String valueString = value.get();
 
