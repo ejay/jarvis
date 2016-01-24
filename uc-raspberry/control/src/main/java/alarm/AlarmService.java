@@ -47,7 +47,7 @@ userIsAwake = false;
             String sleepCycle = storage.get("CurrentSleepCycleUser");
 
             long minutesBetween = ChronoUnit.MINUTES.between(currentTime, alarmTime);
-            if(minutesBetween < oneSidedRangeInMinutes && sleepCycle == "awake" && !userIsAwake){
+            if(minutesBetween < oneSidedRangeInMinutes && sleepCycle.equals("awake") && !userIsAwake){
                 // TODO Sound the alarm.
                 soundAlarm();
             }
