@@ -1,4 +1,4 @@
-package uc.jarvis;
+package uc.jarvis.Activities;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -12,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import java.util.Calendar;
+
+import uc.jarvis.PostSensorDataTask;
 
 public class LightSensorActivity extends AppCompatActivity implements SensorEventListener{
     private SensorManager sensorManager;
