@@ -4,6 +4,8 @@ package uc.jarvis.DataProcessor;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -27,7 +29,7 @@ public class DataProcessingService extends IntentService {
     public DataProcessingService() {
         super("DataProcessingService");
         Context context = getBaseContext();
-        dbHandler = DatabaseHandler.getInstance(context);
+//        dbHandler = DatabaseHandler.getInstance(context);
     }
 
     @Override
@@ -38,18 +40,35 @@ public class DataProcessingService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         Bundle bundle = intent.getExtras();
-        accelerometerRawList = dbHandler.getRawData();
 
-        // process data
-        ProcessedSensorDataObject pdo = new ProcessedSensorDataObject();
-        pdo = processedData(accelerometerRawList, pdo);
-        PostSensorData(pdo);
-
-        // clear history
-        dbHandler.clearRawData();
+        sendWifiState();
+        sendUserIsAtHome();
 
         Log.i("DataProcessingService", "Completed service @ " + SystemClock.elapsedRealtime());
         DataProcessingReceiver.completeWakefulIntent(intent);
+    }
+
+    protected void sendWifiState(){
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiInfo info = wifiManager.getConnectionInfo();
+        String ssid = info.getSSID();
+
+        String postString = String.format("key=%s&value=%s",
+                "WifiFingerprint",
+                ssid);
+
+        Log.i("WifiState", postString);
+
+        new PostSensorDataTask().execute(postString);
+    }
+
+    protected void sendUserIsAtHome(){
+        String postString = String.format("key=%s&value=%s",
+                "UserIsAtHome",
+                true);
+
+        Log.i("UserIsAtHome", postString);
+        new PostSensorDataTask().execute(postString);
     }
 
 

@@ -1,14 +1,21 @@
 package uc.jarvis.Activities;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,12 +32,16 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import org.sleeper.propclasses.com_manager.clComManager;
 import org.sleeper.propclasses.dataprocessor_manager.clDataProcessor;
 
+import java.net.InetAddress;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import uc.jarvis.AccelerometerData;
 import uc.jarvis.CalendarActivity;
+import uc.jarvis.DataProcessor.DataProcessingReceiver;
 import uc.jarvis.DataProcessor.DatabaseHandler;
 import uc.jarvis.DataProcessor.SleepClassifierDataProcessor;
 import uc.jarvis.PostSensorDataTask;
@@ -104,6 +115,11 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
 //        startService(sleepTracking);
 //        bindService(sleepTracking, m_serviceConnection, BIND_AUTO_CREATE);
 //        PendingIntent sleepTrackingIntent = PendingIntent.getBroadcast(AccelerometerActivity.this, 0, sleepTracking, 0);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent dataProcessing = new Intent(AccelerometerActivity.this, DataProcessingReceiver.class);
+        PendingIntent dataProcessingIntent  = PendingIntent.getBroadcast(AccelerometerActivity.this, 0, dataProcessing, 0);
+        alarmManager.setInexactRepeating(AlarmManager.RTC, 5 * 1000, 5 * 1000, dataProcessingIntent);
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -326,6 +342,11 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             }
         }
 
+        protected void sendWifiState(){
+            WifiInfo info = wifiManager.getConnectionInfo ();
+            String ssid = info.getSSID();
+        }
+
         @Override
         public void onAccuracyChanged(Sensor s, int accuracy) {}
 
@@ -339,5 +360,33 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
             getWindow().setAttributes(WMLP);
         }
     };
+
+    private class WifiReceiver extends BroadcastReceiver {
+
+        public void onReceive(Context context, Intent intent) {
+
+            List<ScanResult> results = wifiManager.getScanResults();
+
+            if(intent.getAction().equals(wifiManager.NETWORK_STATE_CHANGED_ACTION)){
+                NetworkInfo netInfo = intent.getParcelableExtra (WifiManager.EXTRA_NETWORK_INFO);
+                if (ConnectivityManager.TYPE_WIFI == netInfo.getType ()) {
+                    if(netInfo.isConnected()){
+                        WifiInfo info = wifiManager.getConnectionInfo ();
+                        String ssid = info.getSSID();
+
+                        String postString = String.format("key=%s&value=%s",
+                                "WifiFingerprint_raw",
+                                ssid);
+
+                        Log.i("NEW WIFI",postString);
+
+                        new PostSensorDataTask().execute(postString);
+                    }
+
+                }
+            }
+
+        }
+    }
 
 }
