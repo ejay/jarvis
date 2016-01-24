@@ -1,4 +1,4 @@
-package uc.jarvis;
+package uc.jarvis.Activities;
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -29,8 +29,12 @@ import org.sleeper.propclasses.dataprocessor_manager.clDataProcessor;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import uc.jarvis.AccelerometerData;
+import uc.jarvis.CalendarActivity;
 import uc.jarvis.DataProcessor.DatabaseHandler;
 import uc.jarvis.DataProcessor.SleepClassifierDataProcessor;
+import uc.jarvis.PostSensorDataTask;
+import uc.jarvis.R;
 import uc.jarvis.Sleep.SleepTrackService;
 import uc.jarvis.Sleep.SleepTrackBroadcastReceiver;
 
@@ -58,7 +62,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
     private long lastUpdateTime_LIGHT = System.currentTimeMillis();
 
     // Thresholds for changes in sensor values for updating latest value
-    private static final int LIGHT_THRESHOLD = 100;
+    private static final int LIGHT_THRESHOLD = 10;
     private static final float MOVEMENT_THRESHOLD = 0.4f;
 
     private final AtomicInteger movementCounter = new AtomicInteger();

@@ -1,4 +1,4 @@
-package uc.jarvis;
+package uc.jarvis.Activities;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -21,6 +21,8 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
+
+import uc.jarvis.R;
 
 public class RealtimeChartActivity extends AppCompatActivity implements OnChartValueSelectedListener {
 
