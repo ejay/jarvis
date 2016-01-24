@@ -140,7 +140,7 @@ public class AccelerometerActivity extends AppCompatActivity implements SensorEv
         mSensorThread = new HandlerThread("Sensor processing thread", Thread.MAX_PRIORITY);
         mSensorThread.start();
         mSensorHandler = new Handler(mSensorThread.getLooper());
-        sm.registerListener(mListener, accelerometer, UPDATE_INTERVAL_ACCEL, UPDATE_INTERVAL_ACCEL, mSensorHandler);
+//        sm.registerListener(mListener, accelerometer, UPDATE_INTERVAL_ACCEL, UPDATE_INTERVAL_ACCEL, mSensorHandler);
         sm.registerListener(mListener, light, UPDATE_INTERVAL_LIGHT, UPDATE_INTERVAL_LIGHT, mSensorHandler);
     }
 
