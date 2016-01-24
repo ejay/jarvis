@@ -12,19 +12,21 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 public class AlarmService {
-    private static long oneSidedRangeInMinutes = 2;
+    private static long oneSidedRangeInMinutes = 10;
 
     public static void main(String[] args){
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         LocalTime alarmTime;
 
+        NSocket.close();
         NSocket.connect("192.168.178.69", 57286);
         NSocket.write("{\"action\":\"identify\"}");
 
         while(true){
             Storage storage = new Storage("localhost");
-            storage.store("PlannedWakeUpTime", "21:00:00");
+            storage.store("PlannedWakeUpTime", "06:30:00");
+            storage.store("TimeOfTodaysFirstCalendarEvent", "07:45:00");
             String alarmTimeString = storage.get("PlannedWakeUpTime");
             LocalTime currentTime = LocalTime.now();
             alarmTime = LocalTime.parse(alarmTimeString, dateTimeFormatter);
@@ -49,6 +51,12 @@ userIsAwake = false;
             long minutesBetween = ChronoUnit.MINUTES.between(currentTime, alarmTime);
             if(minutesBetween < oneSidedRangeInMinutes && sleepCycle.equals("awake") && !userIsAwake){
                 // TODO Sound the alarm.
+                try {
+                    Thread.sleep(60 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 soundAlarm();
             }
 

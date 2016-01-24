@@ -69,7 +69,8 @@ public class NSocket {
 
     public static void close() {
         try {
-            heartbeatThread.stop();
+            if(heartbeatThread != null)
+                heartbeatThread.stop();
             if(bufferedReader != null) {
                 bufferedReader.close();
             }
