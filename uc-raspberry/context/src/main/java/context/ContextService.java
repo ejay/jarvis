@@ -13,7 +13,6 @@ public abstract class ContextService {
 
         switch (keyString){
             case "BedPhoneLight_raw":
-                break;
             case "RoomLight_raw":
                 Double value = Double.parseDouble(valueString);
 

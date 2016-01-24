@@ -20,7 +20,7 @@ public class SnapshotService {
             "TodoListIsEmpty",
             "PlannedWakeUpTime",
 //            "LightsAreOn",
-            "Accelerometer",
+//            "Accelerometer",
             "WifiFingerprint",
             "UserHasWokenUp",
             "CurrentSleepCycleUser"
@@ -28,11 +28,12 @@ public class SnapshotService {
 
     public static void main(String[] args){
 
-        DateTimeFormatter simpleDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss");
+        DateTimeFormatter simpleDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         LocalDateTime localDateTime = LocalDateTime.now();
         String filename = "Snapshots-" + localDateTime.format(simpleDateFormat) + ".txt";
 
         String header = Arrays.stream(keys).collect(Collectors.joining(", "));
+        header = "timestamp, " + header;
         System.out.println("header = " + header);
 
         try {
@@ -46,7 +47,9 @@ public class SnapshotService {
         while(true){
             try {
                 PrintWriter printWriter = new PrintWriter(new FileOutputStream(new File(filename), true));
-                String values = "";
+                localDateTime = LocalDateTime.now();
+                String timestamp = localDateTime.format(simpleDateFormat);
+                String values = "" + timestamp + ", ";
 
                 Storage storage = new Storage("localhost");
                 for(String s : keys){
@@ -57,7 +60,7 @@ public class SnapshotService {
                 printWriter.println(values);
                 printWriter.close();
 
-                Thread.sleep(2000);
+                Thread.sleep(60 * 1000);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {

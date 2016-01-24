@@ -1,7 +1,6 @@
 package context;
 
 import storage.Storage;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.logging.Logger;
  */
 public class UserHasWokenUpContextService extends ContextService {
     private static final Logger logger = Logger.getLogger(UserHasWokenUpContextService.class.getName());
-    private final static String[] inputContextKeys = new String[]{"BedPhoneLight", "CurrentSleepCycleUser"};
+    private final static String[] inputContextKeys = new String[]{"BedPhoneLight"};
     private final static String outputContextKey = "UserHasWokenUp";
 
     @Override
@@ -21,7 +20,6 @@ public class UserHasWokenUpContextService extends ContextService {
         // 1. fetch input contexts from redis
         Storage storage = new Storage("localhost");
         String bedPhoneLight = storage.get(inputContextKeys[0]);
-        String currentSleepCycleUser = storage.get(inputContextKeys[1]);
 
         // 2. evaluate
         String hasWokenUpString;
@@ -32,15 +30,9 @@ public class UserHasWokenUpContextService extends ContextService {
             hasWokenUpString = "true";
         }
 
-        if(currentSleepCycleUser.equals("sleep") || currentSleepCycleUser.equals("rem")){
-            hasWokenUpString = "false";
-        }else if(currentSleepCycleUser.equals("awake")){
-            hasWokenUpString = "true";
-        }
-
         // 3. store output context in redis
         storage.store(outputContextKey, hasWokenUpString);
-        logger.info(String.format("Stored high level context UserHasWokenUp = %s from low level atoms %s = {%s, %s}", hasWokenUpString, Arrays.toString(inputContextKeys), bedPhoneLight, currentSleepCycleUser));
+        logger.info(String.format("Stored high level context UserHasWokenUp = %s from low level atoms %s = {%s}", hasWokenUpString, Arrays.toString(inputContextKeys), bedPhoneLight));
     }
 
     @Override

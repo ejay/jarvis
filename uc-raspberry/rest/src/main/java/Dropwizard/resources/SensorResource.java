@@ -1,12 +1,14 @@
 package Dropwizard.resources;
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.common.base.Optional;
 import context.ContextService;
 import context.ContextUtil;
 import storage.Storage;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.logging.Logger;
@@ -25,7 +27,7 @@ public class SensorResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     //Test with: curl -i -d "key=testkey3&value=testvalue3" http://localhost:8080/sensor-data
     public void receiveKeyValuePair(@FormParam("key") Optional<String> key, @FormParam("value") Optional<String> value){
-        Storage storage = new Storage("192.168.1.218");
+        Storage storage = new Storage("192.168.178.10");
         String keyString = key.get();
         String valueString = value.get();
 

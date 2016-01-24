@@ -19,7 +19,7 @@ public class NSocket {
 
     private static long heart = new Date().getTime();
     private static long beat = new Date().getTime();
-    private static long timeout = 5000;
+    private static long timeout = 30 * 1000;
     private static boolean isConnected = false;
 
     public static class HeartBeat implements Runnable {
@@ -27,8 +27,8 @@ public class NSocket {
             try {
                 while(!Thread.interrupted()) {
                     NSocket.write("HEART");
-                    Thread.sleep(timeout/5);
-                    NSocket.heart = new Date().getTime();
+                    Thread.sleep(timeout);
+                    NSocket.heart = (new Date()).getTime();
                 }
             } catch(InterruptedException e) {
             }
